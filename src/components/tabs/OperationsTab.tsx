@@ -29,7 +29,7 @@ const OperationsTab: React.FC = () => {
     <div className="space-y-8 p-4">
       <h2 className="text-2xl font-bold text-[#003366]">6. Operations Log</h2>
       <Separator />
-      <DynamicTable<OperationEntry & { id: string }> // Cast generic type
+      <DynamicTable // Removed <OperationEntry & { id: string }>
         name="operationEntries"
         columns={OPERATIONS_COLUMNS as any}
         defaultRow={DEFAULT_OPERATION_ROW}
