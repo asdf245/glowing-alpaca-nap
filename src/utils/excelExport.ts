@@ -1,0 +1,225 @@
+import * as XLSX from 'xlsx';
+import { ReportData } from '@/types/report';
+import { calculateDuration } from './dateUtils';
+
+// Helper function to convert column index (0-based) to Excel column letter (A, B, C...)
+const colToLetter = (c: number): string => {
+  let s = '';
+  let n = c + 1;
+  while (n > 0) {
+    let remainder = n % 26;
+    if (remainder === 0) {
+      s = 'Z' + s;
+      n = (n / 26) - 1;
+    } else {
+      s = String.fromCharCode(65 + remainder - 1) + s;
+      n = Math.floor(n / 26);
+    }
+  }
+  return s;
+};
+
+// Helper function to set a cell value
+const setCell = (ws: XLSX.WorkSheet, r: number, c: number, value: string | number | undefined, type: 's' | 'n' = 's') => {
+  if (value !== undefined && value !== null && value !== '') {
+    const cellRef = `${colToLetter(c)}${r + 1}`;
+    ws[cellRef] = { v: value, t: type };
+  }
+};
+
+// Helper function to merge cells
+const mergeCells = (ws: XLSX.WorkSheet, r1: number, c1: number, r2: number, c2: number) => {
+    if (!ws['!merges']) ws['!merges'] = [];
+    ws['!merges'].push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+};
+
+
+export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
+  const wb = XLSX.utils.book_new();
+  const ws: XLSX.WorkSheet = {};
+
+  // --- Row 0 (A1:W1): Main Header ---
+  setCell(ws, 0, 0, "SPECIAL DRILLING SERVICES\nNIDC SURFACE LOGGING DAILY REPORT");
+  mergeCells(ws, 0, 0, 0, 22); 
+
+  // --- Row 1 (A2:V2): Report Metadata ---
+  setCell(ws, 1, 0, "Date"); setCell(ws, 1, 3, data.date);
+  setCell(ws, 1, 6, "Report No."); setCell(ws, 1, 9, data.reportNo, 'n');
+  setCell(ws, 1, 12, "Rig Spud Date"); setCell(ws, 1, 15, data.rigSpudDate);
+  setCell(ws, 1, 18, "Unit Spud Date"); setCell(ws, 1, 21, data.unitSpudDate);
+  
+  // Merge cells for metadata labels/values (A2-C2, D2-F2, G2-I2, J2-L2, M2-O2, P2-R2, S2-U2, V2-X2)
+  // Assuming 3 columns per label/value pair for alignment (A-C, D-F, G-I, J-L, M-O, P-R, S-U, V-X)
+  for (let i = 0; i <= 21; i += 3) {
+    mergeCells(ws, 1, i, 1, i + 2); 
+  }
+
+  // --- Rows 2-7: General Information (Complex Layout) ---
+  
+  const generalInfoMap = [
+    // R2
+    { r: 2, c: 0, label: "Well Name", value: data.wellName },
+    { r: 2, c: 3, label: "Hole Size (inch)", value: data.holeSize },
+    { r: 2, c: 6, label: "Rig Name", value: data.rigName },
+    // R3
+    { r: 3, c: 0, label: "M. Depth (m)", value: data.mDepth, type: 'n' },
+    { r: 3, c: 3, label: "GLE / RTE (m)", value: data.gleRte },
+    { r: 3, c: 6, label: "Rig Type", value: data.rigType },
+    // R4
+    { r: 4, c: 0, label: "Field Name", value: data.fieldName },
+    { r: 4, c: 3, label: "W.D (m)", value: data.wD, type: 'n' },
+    { r: 4, c: 6, label: "Customer", value: data.customer },
+    // R5
+    { r: 5, c: 0, label: "Well Purpose", value: data.wellPurpose },
+    { r: 5, c: 3, label: "TVD (m)", value: data.tvd, type: 'n' },
+    { r: 5, c: 6, label: "Contractor", value: data.contractor },
+    // R6
+    { r: 6, c: 0, label: "Well Type", value: data.wellType },
+    { r: 6, c: 3, label: "ML Unit ID", value: data.mlUnitId },
+    { r: 6, c: 6, label: "Last Survey @ m", value: data.lastSurveyM, type: 'n' },
+    // R7
+    { r: 7, c: 0, label: "Last Formation", value: data.lastFormation },
+    { r: 7, c: 3, label: "Last Formation @ m", value: data.lastFormationM, type: 'n' },
+    { r: 7, c: 6, label: "Last Casing Size (inch)", value: data.lastCasingSize, type: 'n' },
+  ];
+  
+  generalInfoMap.forEach(item => {
+    setCell(ws, item.r, item.c, item.label);
+    setCell(ws, item.r, item.c + 1, item.value, item.type || 's');
+    mergeCells(ws, item.r, item.c + 1, item.r, item.c + 2); 
+  });
+
+
+  // --- Rows 8-15: Bit Data ---
+  let currentRow = 8;
+  setCell(ws, currentRow, 0, "Present Bit"); mergeCells(ws, currentRow, 0, currentRow, 1);
+  setCell(ws, currentRow, 2, "Pulled Out Bit"); mergeCells(ws, currentRow, 2, currentRow, 3);
+  currentRow++;
+
+  const presentBit = data.presentBit;
+  const pulledOutBit = data.pulledOutBit || {};
+  
+  // R9: Bit no./Run no. | Depth In (m)
+  setCell(ws, 9, 0, "Bit no./Run no."); setCell(ws, 9, 1, presentBit.bitRunNo, 'n');
+  setCell(ws, 9, 2, "Depth In (m)"); setCell(ws, 9, 3, pulledOutBit.depthIn, 'n');
+  
+  // R10: Type | Daily on bottom time (hrs.)
+  setCell(ws, 10, 0, "Type"); setCell(ws, 10, 1, presentBit.type);
+  setCell(ws, 10, 2, "Daily on bottom time (hrs.)"); setCell(ws, 10, 3, presentBit.dailyOnBottomTime, 'n');
+  
+  // R11: Serial no. | Accumulative drilling Time (hrs.)
+  setCell(ws, 11, 0, "Serial no."); setCell(ws, 11, 1, presentBit.serialNo);
+  setCell(ws, 11, 2, "Accumulative drilling Time (hrs.)"); setCell(ws, 11, 3, presentBit.accDrillingTime, 'n');
+
+  // R12: Manufacture | Accumulative Counter RPM (Krev)
+  setCell(ws, 12, 0, "Manufacture"); setCell(ws, 12, 1, presentBit.manufacture);
+  setCell(ws, 12, 2, "Accumulative Counter RPM (Krev)"); setCell(ws, 12, 3, presentBit.accCounterRpm, 'n');
+
+  // R13: Nozzle (1/32") | Daily circ. Time (hrs.)
+  setCell(ws, 13, 0, "Nozzle (1/32\")"); setCell(ws, 13, 1, presentBit.nozzle);
+  setCell(ws, 13, 2, "Daily circ. Time (hrs.)"); setCell(ws, 13, 3, presentBit.dailyCircTime, 'n');
+
+  // R14: Bit Size (in) | Accumulative circ. Time (hrs.)
+  setCell(ws, 14, 0, "Bit Size (in)"); setCell(ws, 14, 1, presentBit.bitSize);
+  setCell(ws, 14, 2, "Accumulative circ. Time (hrs.)"); setCell(ws, 14, 3, presentBit.accCircTime, 'n');
+  
+  // --- Row 16: Depth Interval Summary ---
+  currentRow = 16;
+  const meterage = data.depthTo > data.depthFrom ? data.depthTo - data.depthFrom : 0;
+  const avgRop = meterage > 0 && data.hours > 0 ? (meterage / data.hours).toFixed(2) : 0;
+
+  setCell(ws, currentRow, 0, "Depth Interval (m)");
+  setCell(ws, currentRow, 1, "From (m)"); setCell(ws, currentRow, 2, data.depthFrom, 'n');
+  setCell(ws, currentRow, 3, "To (m)"); setCell(ws, currentRow, 4, data.depthTo, 'n');
+  setCell(ws, currentRow, 5, "Meterage (m)"); setCell(ws, currentRow, 6, meterage, 'n');
+  setCell(ws, currentRow, 7, "Hours (hr)"); setCell(ws, currentRow, 8, data.hours, 'n');
+  setCell(ws, currentRow, 9, "AVG. ROP (m/hr.)"); setCell(ws, currentRow, 10, avgRop, 'n');
+
+  // --- Rows 17-18: Hydraulic Data ---
+  currentRow = 17;
+  setCell(ws, currentRow, 0, "Hydraulic Data");
+  setCell(ws, currentRow, 1, "Ann Velocity (m/min)");
+  setCell(ws, currentRow, 2, "Jet Velocity (m/s)");
+  setCell(ws, currentRow, 3, "Bit HHP");
+  setCell(ws, currentRow, 4, "HSI (HHP/inch2)");
+  setCell(ws, currentRow, 5, "ECD (pcf)");
+  currentRow++;
+  setCell(ws, currentRow, 1, data.annVelocity, 'n');
+  setCell(ws, currentRow, 2, data.jetVelocity, 'n');
+  setCell(ws, currentRow, 3, data.bitHhp, 'n');
+  setCell(ws, currentRow, 4, data.hsi, 'n');
+  setCell(ws, currentRow, 5, data.ecd, 'n');
+
+  // --- Rows 19-21: Mud Data ---
+  currentRow = 19;
+  setCell(ws, currentRow, 0, "Mud Weight (pcf)"); setCell(ws, currentRow, 1, data.mudWeight, 'n');
+  setCell(ws, currentRow, 2, "Viscosity (s/qt.)"); setCell(ws, currentRow, 3, data.viscosity, 'n');
+  setCell(ws, currentRow, 4, "P.V. (cp)"); setCell(ws, currentRow, 5, data.pv, 'n');
+  setCell(ws, currentRow, 6, "YP (lbf/100ft^2)"); setCell(ws, currentRow, 7, data.yp, 'n');
+  setCell(ws, currentRow, 8, "Gels (10sec/10min)"); setCell(ws, currentRow, 9, data.gels);
+  setCell(ws, currentRow, 10, "W. L. (cc/30\")"); setCell(ws, currentRow, 11, data.wL, 'n');
+  setCell(ws, currentRow, 12, "CL (gr/l)"); setCell(ws, currentRow, 13, data.cl, 'n');
+  setCell(ws, currentRow, 14, "PH"); setCell(ws, currentRow, 15, data.ph, 'n');
+  
+  // --- Rows 29-30: Drilling Parameters (WOB, SPP, etc.) ---
+  currentRow = 29;
+  setCell(ws, currentRow, 0, "WOB (Klbf)"); setCell(ws, currentRow, 1, data.wob, 'n');
+  setCell(ws, currentRow, 2, "SPP (PSI)"); setCell(ws, currentRow, 3, data.spp, 'n');
+  setCell(ws, currentRow, 4, "Flow Rate (GPM)"); setCell(ws, currentRow, 5, data.flowRate, 'n');
+  setCell(ws, currentRow, 6, "RPM + TURB. (rpm)"); setCell(ws, currentRow, 7, data.rpmTurb, 'n');
+  setCell(ws, currentRow, 8, "Torque (klbf.ft)"); setCell(ws, currentRow, 9, data.torque, 'n');
+  
+  // --- Rows 31-38: Lithological Data (Table Header) ---
+  currentRow = 31;
+  setCell(ws, currentRow, 0, "From (m)");
+  setCell(ws, currentRow, 1, "To (m)");
+  setCell(ws, currentRow, 2, "ROP (m/hr)"); mergeCells(ws, currentRow, 2, currentRow, 4);
+  setCell(ws, currentRow, 5, "Lithological Description"); mergeCells(ws, currentRow, 5, currentRow, 10);
+  currentRow++;
+  setCell(ws, currentRow, 2, "(min)");
+  setCell(ws, currentRow, 3, "(max)");
+  setCell(ws, currentRow, 4, "(avg)");
+  currentRow++;
+  
+  // Lithology Data Rows (starting at R33)
+  data.lithologyEntries.forEach(entry => {
+    setCell(ws, currentRow, 0, entry.from, 'n');
+    setCell(ws, currentRow, 1, entry.to, 'n');
+    setCell(ws, currentRow, 2, entry.ropMin, 'n');
+    setCell(ws, currentRow, 3, entry.ropMax, 'n');
+    setCell(ws, currentRow, 4, entry.ropAvg, 'n');
+    setCell(ws, currentRow, 5, entry.description); mergeCells(ws, currentRow, 5, currentRow, 10);
+    currentRow++;
+  });
+  
+  // --- Rows 48-66: Operations Log (Table Header) ---
+  // We skip rows 39-47 (Gas Data/Directional Data) to align with R48 for Operations Log
+  
+  currentRow = 48;
+  setCell(ws, currentRow, 0, "From");
+  setCell(ws, currentRow, 1, "To");
+  setCell(ws, currentRow, 2, "Duration");
+  setCell(ws, currentRow, 3, "Remark"); mergeCells(ws, currentRow, 3, currentRow, 10);
+  currentRow++;
+  
+  data.operationEntries.forEach(entry => {
+    const duration = calculateDuration(entry.fromTime, entry.toTime);
+    setCell(ws, currentRow, 0, entry.fromTime);
+    setCell(ws, currentRow, 1, entry.toTime);
+    setCell(ws, currentRow, 2, duration);
+    setCell(ws, currentRow, 3, entry.remark); mergeCells(ws, currentRow, 3, currentRow, 10);
+    currentRow++;
+  });
+  
+  // Set column widths (optional but good practice)
+  ws['!cols'] = [
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, 
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, 
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, 
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, 
+    { wch: 10 }, { wch: 10 }, { wch: 10 }
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Data_Entry");
+  return wb;
+}
