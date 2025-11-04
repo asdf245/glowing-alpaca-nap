@@ -14,7 +14,7 @@ interface ExportTabProps {
     onExport: () => void;
 }
 
-const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
+const ExportTab: React.FC<ExportTabProps> = ({ onExport: _onExport }) => {
     const { report } = useReportStore();
     const { watch, setValue } = useFormContext<ReportData>();
     const [exportStatus, setExportStatus] = useState<'Ready' | 'Exporting...' | 'Complete' | 'Error'>('Ready');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useReportStore } from '@/store/useReportStore';
@@ -18,7 +18,7 @@ import EquipmentTab from '@/components/tabs/EquipmentTab';
 import ExportTab from '@/components/tabs/ExportTab';
 
 const Index = () => {
-  const { report, setReport, autoSave } = useReportStore();
+  const { report, setReport } = useReportStore();
   const [activeTab, setActiveTab] = useState('general');
 
   // Initialize React Hook Form with current Zustand state

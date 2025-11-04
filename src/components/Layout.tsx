@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, X, Clock } from 'lucide-react';
+import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { MadeWithDyad } from './made-with-dyad';
 import { useReportStore } from '@/store/useReportStore';
 import { ipcRenderer } from '@/ipc/ipcRenderer';

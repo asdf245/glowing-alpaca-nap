@@ -90,7 +90,7 @@ const EquipmentTab: React.FC = () => {
                 {/* Day Crew */}
                 <div className="space-y-4 p-4 border rounded-lg">
                     <h4 className="font-medium text-lg">Day Crew</h4>
-                    {watch('dayCrew').map((crew, index) => (
+                    {watch('dayCrew').map((_crew, index) => (
                         <div key={index} className="grid grid-cols-3 gap-4">
                             <Label className="flex items-center">Person {index + 1}</Label>
                             <FormField
@@ -112,7 +112,7 @@ const EquipmentTab: React.FC = () => {
                 {/* Night Crew */}
                 <div className="space-y-4 p-4 border rounded-lg">
                     <h4 className="font-medium text-lg">Night Crew</h4>
-                    {watch('nightCrew').map((crew, index) => (
+                    {watch('nightCrew').map((_crew, index) => (
                         <div key={index} className="grid grid-cols-3 gap-4">
                             <Label className="flex items-center">Person {index + 1}</Label>
                             <FormField

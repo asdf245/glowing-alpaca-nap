@@ -21,14 +21,17 @@ const BitDataTab: React.FC = () => {
 
   // Use 'as any' to bypass RHF's strict type checking on nested errors
   const getError = (field: keyof ReportData['presentBit']) => (errors.presentBit as any)?.[field]?.message as string | undefined;
-  const getPulledOutError = (field: keyof ReportData['pulledOutBit']) => (errors.pulledOutBit as any)?.[field]?.message as string | undefined;
+  
+  // Use NonNullable to correctly infer keys of the optional pulledOutBit object
+  type PulledOutBitKeys = keyof NonNullable<ReportData['pulledOutBit']>;
+  const getPulledOutError = (field: PulledOutBitKeys) => (errors.pulledOutBit as any)?.[field]?.message as string | undefined;
 
   // Use 'as any' for the path string to satisfy setValue when using template literals
   const updatePresentBit = (key: keyof ReportData['presentBit'], value: string | number) => {
     setValue(`presentBit.${key}` as any, value as any, { shouldValidate: true });
   };
 
-  const updatePulledOutBit = (key: keyof ReportData['pulledOutBit'], value: string | number) => {
+  const updatePulledOutBit = (key: PulledOutBitKeys, value: string | number) => {
     setValue(`pulledOutBit.${key}` as any, value as any, { shouldValidate: true });
   };
 

@@ -26,7 +26,7 @@ const electronApi = {
 
     return null;
   },
-  on: (channel: string, listener: (event: any, ...args: any[]) => void) => {
+  on: (channel: string, _listener: (event: any, ...args: any[]) => void) => {
     console.log(`[IPC Listener] Registered for channel: ${channel}`);
     // No actual events to listen to in this simulation
   },
