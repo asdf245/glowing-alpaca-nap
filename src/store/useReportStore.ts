@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { ReportData, initialReportData } from '@/types/report';
-import { db } from '@/db/db';
+import { db, ReportRecord } from '@/db/db';
 import { toast } from 'sonner';
 
 interface ReportState {
@@ -78,16 +78,22 @@ export const useReportStore = create<ReportState>((set, get) => {
 
     autoSave: async () => {
       const state = get();
-      if (!state.report.wellName || !state.report.date) {
+      
+      // Ensure wellName and date are strings before proceeding
+      const wellName = state.report.wellName as string;
+      const reportDate = state.report.date as string;
+
+      if (!wellName || !reportDate) {
         // Skip auto-save if essential metadata is missing
         return;
       }
 
       set({ status: 'saving' });
       const now = new Date();
-      const reportRecord = {
-        wellName: state.report.wellName,
-        reportDate: state.report.date,
+      
+      const reportRecord: ReportRecord = {
+        wellName: wellName,
+        reportDate: reportDate,
         data: state.report,
         lastModified: now,
       };

@@ -104,10 +104,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
   const QuickSummary = () => (
     <div className="p-4 border-t border-border mt-auto bg-sidebar-accent/50">
       <h3 className="font-semibold text-sm mb-2 text-sidebar-foreground">QUICK SUMMARY</h3>
-      <p className="text-xs text-sidebar-foreground/80">Well: <span className="font-medium">{report.wellName || 'N/A'}</span></p>
-      <p className="text-xs text-sidebar-foreground/80">Date: <span className="font-medium">{report.date || 'N/A'}</span></p>
-      <p className="text-xs text-sidebar-foreground/80">Report: <span className="font-medium">{report.reportNo || 'N/A'}</span></p>
-      <p className="text-xs text-sidebar-foreground/80">Depth: <span className="font-medium">{report.depthTo || 'N/A'}m</span></p>
+      <p className="text-xs text-sidebar-foreground/80">Well: <span className="font-medium">{report.wellName as string || 'N/A'}</span></p>
+      <p className="text-xs text-sidebar-foreground/80">Date: <span className="font-medium">{report.date as string || 'N/A'}</span></p>
+      <p className="text-xs text-sidebar-foreground/80">Report: <span className="font-medium">{report.reportNo as number || 'N/A'}</span></p>
+      <p className="text-xs text-sidebar-foreground/80">Depth: <span className="font-medium">{report.depthTo as number || 'N/A'}m</span></p>
     </div>
   );
 
@@ -135,7 +135,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
   const FooterStatus = () => (
     <div className="flex justify-between items-center p-2 border-t border-border text-xs text-muted-foreground">
       <span>
-        {report.wellName}: {report.depthFrom}-{report.depthTo}m | Report No. {report.reportNo}
+        {report.wellName as string}: {report.depthFrom as number}-{report.depthTo as number}m | Report No. {report.reportNo as number}
       </span>
       <span className="flex items-center">
         <Clock className="h-3 w-3 mr-1" />
@@ -189,8 +189,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-grow">
-        <HeaderActions />
-        <Separator />
+        <header className="p-4 border-b border-border flex items-center justify-between">
+          <HeaderActions />
+          <span className={`text-sm font-medium text-muted-foreground`}>
+            {lastAutoSave ? `Auto-saved at ${lastAutoSave}` : 'Ready'}
+          </span>
+        </header>
         <div className="flex-grow p-6 overflow-y-auto">
           {children}
         </div>

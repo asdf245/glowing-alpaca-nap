@@ -26,7 +26,7 @@ const LithologyTab: React.FC = () => {
     <div className="space-y-8 p-4">
       <h2 className="text-2xl font-bold text-[#003366]">4. Lithology Data</h2>
       <Separator />
-      <DynamicTable<LithologyEntry>
+      <DynamicTable<LithologyEntry & { id: string }> // Cast generic type
         name="lithologyEntries"
         columns={LITHOLOGY_COLUMNS as any}
         defaultRow={DEFAULT_LITHOLOGY_ROW}

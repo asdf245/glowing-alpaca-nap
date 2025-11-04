@@ -124,7 +124,7 @@ export const ReportSchema = z.object({
   gels: z.string().optional(),
   wL: z.number().min(0).optional(),
   cl: z.number().min(0).optional(),
-  ph: z.number().min(0).max(14, "PH must be between 0 and 14").required(),
+  ph: z.number().min(0).max(14, "PH must be between 0 and 14"), // Removed .required()
   totalDailyLosses: z.number().min(0).optional(),
   totalDailyFlow: z.number().min(0).optional(),
   totalWellLosses: z.number().min(0).optional(),
@@ -156,7 +156,7 @@ export const ReportSchema = z.object({
   includeSignatures: z.boolean().default(true),
   includeCalibrationData: z.boolean().default(true),
   exportReadOnly: z.boolean().default(false),
-}).refine(data => data.depthTo >= data.depthFrom, {
+}).refine(data => (data.depthTo as number) >= (data.depthFrom as number), {
   message: "To depth must be greater than or equal to From depth",
   path: ["depthTo"],
 });

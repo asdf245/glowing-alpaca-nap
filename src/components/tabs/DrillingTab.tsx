@@ -12,8 +12,8 @@ const DrillingTab: React.FC = () => {
   const hours = watch('hours') || 0;
 
   // Auto-Calculations
-  const meterage = depthTo > depthFrom ? depthTo - depthFrom : 0;
-  const avgRop = meterage > 0 && hours > 0 ? (meterage / hours).toFixed(2) : 0;
+  const meterage = (depthTo as number) > (depthFrom as number) ? (depthTo as number) - (depthFrom as number) : 0;
+  const avgRop = meterage > 0 && (hours as number) > 0 ? (meterage / (hours as number)).toFixed(2) : 0;
 
   const getError = (field: keyof ReportData) => errors[field]?.message as string | undefined;
 
@@ -200,7 +200,7 @@ const DrillingTab: React.FC = () => {
         />
         <FormField
           label="W. L."
-          unit="cc/30\""
+          unit="cc/30&quot;" // Fixed escaping
           type="number"
           value={watch('wL')}
           onChange={(val) => setValue('wL', val as number)}

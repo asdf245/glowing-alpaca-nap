@@ -111,7 +111,7 @@ const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
                 </p>
                 {lastExportTime && (
                     <p className="text-sm text-muted-foreground">
-                        Last exported: {report.date} {lastExportTime}
+                        Last exported: {report.date as string} {lastExportTime}
                     </p>
                 )}
             </div>

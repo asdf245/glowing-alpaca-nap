@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils'; // Import cn
 
 const BIT_TYPE_OPTIONS = [
   { value: 'PDC', label: 'PDC' },
@@ -18,15 +19,17 @@ const BitDataTab: React.FC = () => {
   const { watch, setValue, formState: { errors } } = useFormContext<ReportData>();
   const [isPulledOutOpen, setIsPulledOutOpen] = useState(false);
 
-  const getError = (field: keyof ReportData['presentBit']) => errors.presentBit?.[field]?.message as string | undefined;
-  const getPulledOutError = (field: keyof ReportData['pulledOutBit']) => errors.pulledOutBit?.[field]?.message as string | undefined;
+  // Use 'as any' to bypass RHF's strict type checking on nested errors
+  const getError = (field: keyof ReportData['presentBit']) => (errors.presentBit as any)?.[field]?.message as string | undefined;
+  const getPulledOutError = (field: keyof ReportData['pulledOutBit']) => (errors.pulledOutBit as any)?.[field]?.message as string | undefined;
 
+  // Use 'as any' for the path string to satisfy setValue when using template literals
   const updatePresentBit = (key: keyof ReportData['presentBit'], value: string | number) => {
-    setValue(`presentBit.${key}`, value as any, { shouldValidate: true });
+    setValue(`presentBit.${key}` as any, value as any, { shouldValidate: true });
   };
 
   const updatePulledOutBit = (key: keyof ReportData['pulledOutBit'], value: string | number) => {
-    setValue(`pulledOutBit.${key}`, value as any, { shouldValidate: true });
+    setValue(`pulledOutBit.${key}` as any, value as any, { shouldValidate: true });
   };
 
   return (
@@ -67,7 +70,7 @@ const BitDataTab: React.FC = () => {
         />
         <FormField
           label="Nozzle"
-          unit="1/32\""
+          unit="1/32&quot;" // Fixed escaping
           type="text"
           value={watch('presentBit.nozzle')}
           onChange={(val) => updatePresentBit('nozzle', val)}
@@ -175,7 +178,7 @@ const BitDataTab: React.FC = () => {
             />
             <FormField
               label="Nozzle"
-              unit="1/32\""
+              unit="1/32&quot;" // Fixed escaping
               type="text"
               value={watch('pulledOutBit.nozzle')}
               onChange={(val) => updatePulledOutBit('nozzle', val)}
