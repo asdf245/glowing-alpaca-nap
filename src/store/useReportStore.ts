@@ -101,7 +101,13 @@ export const useReportStore = create<ReportState>((set, get) => {
       try {
         // Save to IndexedDB
         if (state.currentReportId) {
-          await db.reports.update(state.currentReportId, reportRecord);
+          // When updating, we only pass the fields that might change, which is the data payload and metadata
+          await db.reports.update(state.currentReportId, {
+            wellName: reportRecord.wellName,
+            reportDate: reportRecord.reportDate,
+            data: reportRecord.data,
+            lastModified: reportRecord.lastModified,
+          });
         } else {
           const id = await db.reports.add(reportRecord);
           set({ currentReportId: id });

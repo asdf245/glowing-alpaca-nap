@@ -25,7 +25,7 @@ const EquipmentTab: React.FC = () => {
     const { watch, setValue } = useFormContext<ReportData>();
 
     const updateCalibration = (equipmentKey: keyof ReportData['equipmentCalibration'], field: 'testDate' | 'calibratedDate' | 'result', value: string) => {
-        setValue(`equipmentCalibration.${equipmentKey}.${field}`, value as any);
+        setValue(`equipmentCalibration.${equipmentKey}.${field}` as any, value as any);
     };
 
     return (
@@ -41,18 +41,18 @@ const EquipmentTab: React.FC = () => {
                         
                         <JalaliDatePicker
                             label="Test Date"
-                            value={watch(`equipmentCalibration.${key}.testDate`) || ''}
+                            value={watch(`equipmentCalibration.${key}.testDate` as any) || ''}
                             onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'testDate', val)}
                         />
                         <JalaliDatePicker
                             label="Calibrated Date"
-                            value={watch(`equipmentCalibration.${key}.calibratedDate`) || ''}
+                            value={watch(`equipmentCalibration.${key}.calibratedDate` as any) || ''}
                             onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'calibratedDate', val)}
                         />
                         <FormField
                             label="Result"
                             type="select"
-                            value={watch(`equipmentCalibration.${key}.result`) || ''}
+                            value={watch(`equipmentCalibration.${key}.result` as any) || ''}
                             onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'result', val as string)}
                             options={RESULT_OPTIONS}
                         />
