@@ -18,7 +18,7 @@ import EquipmentTab from '@/components/tabs/EquipmentTab';
 import ExportTab from '@/components/tabs/ExportTab';
 
 const Index = () => {
-  const { report, setReport } = useReportStore();
+  const { report, setReport, currentReportId } = useReportStore();
   const [activeTab, setActiveTab] = useState('general');
 
   // Initialize React Hook Form with current Zustand state
@@ -30,18 +30,33 @@ const Index = () => {
 
   const { watch, reset, handleSubmit } = methods;
 
-  // Sync RHF changes back to Zustand store for persistence and global access
+  // Effect 1: Sync RHF changes back to Zustand store for persistence and global access
+  // This runs on every form change.
   useEffect(() => {
     const subscription = watch((value) => {
+      // Use setReport to update Zustand state
       setReport(value as ReportData);
     });
     return () => subscription.unsubscribe();
   }, [watch, setReport]);
 
-  // Sync Zustand state changes (e.g., on load/new report) to RHF
+  // Effect 2: Sync Zustand state changes (e.g., on load/new report) to RHF
+  // We only want this to run when a new report is loaded or created (i.e., currentReportId changes)
+  // or when the initial report object reference changes significantly.
+  // Since Effect 1 already updates the report object reference constantly, we must rely on a stable identifier.
+  // We use currentReportId as a proxy for a major state change (load/new).
   useEffect(() => {
-    reset(report);
-  }, [report, reset]);
+    // Only reset RHF if the report ID changes (new report loaded/created)
+    // or if the initial load happens (currentReportId is null, but report object is new).
+    // We rely on the initial defaultValues for the first render.
+    // When currentReportId changes, it means we loaded a new report, so we reset RHF to that data.
+    if (currentReportId !== undefined) {
+        reset(report);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentReportId, reset]); 
+  // Note: We intentionally omit 'report' from dependencies here to break the loop. 
+  // The 'report' object is passed to reset when currentReportId changes.
 
   // Handle form submission (e.g., for export validation)
   const onSubmit = (data: ReportData) => {
