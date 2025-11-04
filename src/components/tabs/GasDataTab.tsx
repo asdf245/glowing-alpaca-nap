@@ -49,7 +49,7 @@ const GasDataTab: React.FC = () => {
     <div className="space-y-8 p-4">
       <h2 className="text-2xl font-bold text-[#003366]">5. Gas Data</h2>
       <Separator />
-      <DynamicTable<GasEntry & { id: string }> // Cast generic type
+      <DynamicTable // Removed <GasEntry & { id: string }>
         name="gasEntries"
         columns={GAS_COLUMNS as any}
         defaultRow={DEFAULT_GAS_ROW}
