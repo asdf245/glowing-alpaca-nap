@@ -49,7 +49,6 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, 1, 18, "Unit Spud Date"); setCell(ws, 1, 21, data.unitSpudDate as string);
   
   // Merge cells for metadata labels/values (A2-C2, D2-F2, G2-I2, J2-L2, M2-O2, P2-R2, S2-U2, V2-X2)
-  // Assuming 3 columns per label/value pair for alignment (A-C, D-F, G-I, J-L, M-O, P-R, S-U, V-X)
   for (let i = 0; i <= 21; i += 3) {
     mergeCells(ws, 1, i, 1, i + 2); 
   }
@@ -154,7 +153,7 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 4, data.hsi as number, 'n');
   setCell(ws, currentRow, 5, data.ecd as number, 'n');
   
-  // --- Rows 19-21: Mud Data ---
+  // --- Row 19: Mud Data ---
   currentRow = 19;
   setCell(ws, currentRow, 0, "Mud Weight (pcf)"); setCell(ws, currentRow, 1, data.mudWeight as number, 'n');
   setCell(ws, currentRow, 2, "Viscosity (s/qt.)"); setCell(ws, currentRow, 3, data.viscosity as number, 'n');
@@ -165,37 +164,59 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 12, "CL (gr/l)"); setCell(ws, currentRow, 13, data.cl as number, 'n');
   setCell(ws, currentRow, 14, "PH"); setCell(ws, currentRow, 15, data.ph as number, 'n');
   
-  // --- Rows 22-24: Volume and Circulation Data (New Section) ---
-  currentRow = 22;
+  // --- Row 20: Rheology Inputs & Power Law Results ---
+  currentRow = 20;
+  setCell(ws, currentRow, 0, "Rheology @ 600 RPM"); setCell(ws, currentRow, 1, data.rheology600 as number, 'n');
+  setCell(ws, currentRow, 2, "Rheology @ 300 RPM"); setCell(ws, currentRow, 3, data.rheology300 as number, 'n');
+  setCell(ws, currentRow, 4, "Liner Size (in)"); setCell(ws, currentRow, 5, data.linerSizeIn as number, 'n');
+  setCell(ws, currentRow, 6, "Stroke Length (in)"); setCell(ws, currentRow, 7, data.strokeLengthIn as number, 'n');
+  setCell(ws, currentRow, 8, "Flow Index (n)"); setCell(ws, currentRow, 9, data.n as number, 'n');
+  setCell(ws, currentRow, 10, "Consistency Index (k)"); setCell(ws, currentRow, 11, data.k as number, 'n');
+
+  // --- Row 21: Pressure/Density Management ---
+  currentRow = 21;
+  setCell(ws, currentRow, 0, "Pressure & Density Management"); mergeCells(ws, currentRow, 0, currentRow, 0);
+  setCell(ws, currentRow, 1, "Hydrostatic Pressure (PSI)"); setCell(ws, currentRow, 2, data.hydrostaticPressure as number, 'n');
+  setCell(ws, currentRow, 3, "Annular Pressure Loss (PSI)"); setCell(ws, currentRow, 4, data.annularPressureLoss as number, 'n');
+  setCell(ws, currentRow, 5, "EMW (pcf)"); setCell(ws, currentRow, 6, data.emw as number, 'n');
+  setCell(ws, currentRow, 7, "MAMW (pcf)"); setCell(ws, currentRow, 8, data.mamw as number, 'n');
+  setCell(ws, currentRow, 9, "Trip Margin (pcf)"); setCell(ws, currentRow, 10, data.tripMargin as number, 'n');
+  
+  // --- Rows 23-24: Volume and Circulation Data (Updated Section) ---
+  currentRow = 23;
   setCell(ws, currentRow, 0, "Volume & Circulation Data"); mergeCells(ws, currentRow, 0, currentRow, 0);
   setCell(ws, currentRow, 1, "Total Hole Volume (bbl)"); setCell(ws, currentRow, 2, data.totalHoleVolume as number, 'n');
   setCell(ws, currentRow, 3, "Annulus Volume (bbl)"); setCell(ws, currentRow, 4, data.annulusVolume as number, 'n');
   setCell(ws, currentRow, 5, "Capacity Volume (bbl)"); setCell(ws, currentRow, 6, data.capacityVolume as number, 'n');
   setCell(ws, currentRow, 7, "Steel Volume (bbl)"); setCell(ws, currentRow, 8, data.steelVolume as number, 'n');
-  setCell(ws, currentRow, 9, "Lag Time (min)"); setCell(ws, currentRow, 10, data.lagTimeMin as number, 'n');
-  setCell(ws, currentRow, 11, "Circulation Strokes"); setCell(ws, currentRow, 12, data.completeCirculationStrokes as number, 'n');
+  setCell(ws, currentRow, 9, "Displace Volume (bbl)"); setCell(ws, currentRow, 10, data.displaceVolume as number, 'n');
+  setCell(ws, currentRow, 11, "Lag Time (min)"); setCell(ws, currentRow, 12, data.lagTimeMin as number, 'n');
+  setCell(ws, currentRow, 13, "Circulation Strokes"); setCell(ws, currentRow, 14, data.completeCirculationStrokes as number, 'n');
 
-  // --- Rows 29-30: Drilling Parameters (WOB, SPP, etc.) ---
-  currentRow = 29;
+  // --- Rows 30-31: Drilling Parameters (WOB, SPP, etc.) ---
+  // Shifted from R29 to R30
+  currentRow = 30;
   setCell(ws, currentRow, 0, "WOB (Klbf)"); setCell(ws, currentRow, 1, data.wob as number, 'n');
   setCell(ws, currentRow, 2, "SPP (PSI)"); setCell(ws, currentRow, 3, data.spp as number, 'n');
   setCell(ws, currentRow, 4, "Flow Rate (GPM)"); setCell(ws, currentRow, 5, data.flowRate as number, 'n');
   setCell(ws, currentRow, 6, "RPM + TURB. (rpm)"); setCell(ws, currentRow, 7, data.rpmTurb as number, 'n');
   setCell(ws, currentRow, 8, "Torque (klbf.ft)"); setCell(ws, currentRow, 9, data.torque as number, 'n');
   
-  // --- Rows 31-38: Lithological Data (Table Header) ---
-  currentRow = 31;
+  // --- Rows 32-33: Lithological Data (Table Header) ---
+  // Shifted from R31 to R32
+  currentRow = 32;
   setCell(ws, currentRow, 0, "From (m)");
   setCell(ws, currentRow, 1, "To (m)");
   setCell(ws, currentRow, 2, "ROP (m/hr)"); mergeCells(ws, currentRow, 2, currentRow, 4);
   setCell(ws, currentRow, 5, "Lithological Description"); mergeCells(ws, currentRow, 5, currentRow, 10);
   currentRow++;
+  // Shifted from R32 to R33
   setCell(ws, currentRow, 2, "(min)");
   setCell(ws, currentRow, 3, "(max)");
   setCell(ws, currentRow, 4, "(avg)");
   currentRow++;
   
-  // Lithology Data Rows (starting at R33)
+  // Lithology Data Rows (starting at R34)
   (data.lithologyEntries as any[]).forEach(entry => {
     setCell(ws, currentRow, 0, entry.from, 'n');
     setCell(ws, currentRow, 1, entry.to, 'n');
@@ -206,10 +227,10 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
     currentRow++;
   });
   
-  // --- Rows 48-66: Operations Log (Table Header) ---
-  // We skip rows 39-47 (Gas Data/Directional Data) to align with R48 for Operations Log
+  // --- Rows 49-67: Operations Log (Table Header) ---
+  // We skip rows 39-47 (Gas Data/Directional Data) to align with R49 for Operations Log
   
-  currentRow = 48;
+  currentRow = 49;
   setCell(ws, currentRow, 0, "From");
   setCell(ws, currentRow, 1, "To");
   setCell(ws, currentRow, 2, "Duration");
