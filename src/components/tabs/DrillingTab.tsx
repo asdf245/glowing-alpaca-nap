@@ -11,7 +11,7 @@ const DrillingTab: React.FC = () => {
   const depthTo = watch('depthTo') || 0;
   const hours = watch('hours') || 0;
 
-  // Auto-Calculations
+  // Auto-Calculations (Meterage and ROP remain here)
   const meterage = (depthTo as number) > (depthFrom as number) ? (depthTo as number) - (depthFrom as number) : 0;
   const avgRop = meterage > 0 && (hours as number) > 0 ? (meterage / (hours as number)).toFixed(2) : 0;
 
@@ -115,44 +115,11 @@ const DrillingTab: React.FC = () => {
 
       <Separator />
 
-      {/* Hydraulic Data */}
-      <h3 className="text-xl font-semibold text-[#003366]">Hydraulic Data</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <FormField
-          label="Ann Velocity"
-          unit="m/min"
-          type="number"
-          value={watch('annVelocity')}
-          onChange={(val) => setValue('annVelocity', val as number)}
-        />
-        <FormField
-          label="Jet Velocity"
-          unit="m/s"
-          type="number"
-          value={watch('jetVelocity')}
-          onChange={(val) => setValue('jetVelocity', val as number)}
-        />
-        <FormField
-          label="Bit HHP"
-          type="number"
-          value={watch('bitHhp')}
-          onChange={(val) => setValue('bitHhp', val as number)}
-        />
-        <FormField
-          label="HSI"
-          unit="HHP/inch²"
-          type="number"
-          value={watch('hsi')}
-          onChange={(val) => setValue('hsi', val as number)}
-        />
-        <FormField
-          label="ECD"
-          unit="pcf"
-          type="number"
-          value={watch('ecd')}
-          onChange={(val) => setValue('ecd', val as number)}
-        />
-      </div>
+      {/* Hydraulic Data (Removed fields: Ann Velocity, Jet Velocity, Bit HHP, HSI, ECD) */}
+      <h3 className="text-xl font-semibold text-[#003366]">Hydraulic Data (Calculated in 'Calculations' Tab)</h3>
+      <p className="text-sm text-muted-foreground">
+        Annular Velocity, Jet Velocity, Bit HHP, HSI, and ECD are now calculated automatically in the "Calculations" tab based on Flow Rate, SPP, Mud Weight, Hole Size, Nozzle, and TVD inputs.
+      </p>
 
       <Separator />
 

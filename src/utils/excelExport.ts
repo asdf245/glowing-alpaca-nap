@@ -139,9 +139,9 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 7, "Hours (hr)"); setCell(ws, currentRow, 8, hours, 'n');
   setCell(ws, currentRow, 9, "AVG. ROP (m/hr.)"); setCell(ws, currentRow, 10, avgRop, 'n');
 
-  // --- Rows 17-18: Hydraulic Data ---
+  // --- Rows 17-18: Hydraulic Data (Now calculated) ---
   currentRow = 17;
-  setCell(ws, currentRow, 0, "Hydraulic Data");
+  setCell(ws, currentRow, 0, "Hydraulic Data (Calculated)"); mergeCells(ws, currentRow, 0, currentRow, 0);
   setCell(ws, currentRow, 1, "Ann Velocity (m/min)");
   setCell(ws, currentRow, 2, "Jet Velocity (m/s)");
   setCell(ws, currentRow, 3, "Bit HHP");

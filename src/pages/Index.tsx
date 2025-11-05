@@ -12,6 +12,7 @@ import { useReportActions } from '@/hooks/useReportActions'; // Import the new h
 import GeneralTab from '@/components/tabs/GeneralTab';
 import BitDataTab from '@/components/tabs/BitDataTab';
 import DrillingTab from '@/components/tabs/DrillingTab';
+import PetroleumCalculations from '@/components/tabs/PetroleumCalculations'; // New Import
 import LithologyTab from '@/components/tabs/LithologyTab';
 import GasDataTab from '@/components/tabs/GasDataTab';
 import OperationsTab from '@/components/tabs/OperationsTab';
@@ -101,6 +102,9 @@ const Index = () => {
               </TabsContent>
               <TabsContent value="drilling" className="mt-0">
                 <DrillingTab />
+              </TabsContent>
+              <TabsContent value="calculations" className="mt-0">
+                <PetroleumCalculations />
               </TabsContent>
               <TabsContent value="lithology" className="mt-0">
                 <LithologyTab />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock } from 'lucide-react';
+import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from './made-with-dyad';
 import { useReportStore } from '@/store/useReportStore';
@@ -18,6 +18,7 @@ const TABS = [
   { id: 'general', label: 'General', icon: FileText },
   { id: 'bit', label: 'Bit Data', icon: FileText },
   { id: 'drilling', label: 'Drilling', icon: FileText },
+  { id: 'calculations', label: 'Calculations', icon: Calculator }, // New Tab
   { id: 'lithology', label: 'Lithology', icon: FileText },
   { id: 'gas', label: 'Gas Data', icon: FileText },
   { id: 'operations', label: 'Operations', icon: FileText },
