@@ -67,27 +67,37 @@ export function generateNidcExcelBase64(data: ReportData): string {
   // --- Rows 2-7: General Information (Complex Layout) ---
   
   const generalInfoMap = [
-    // R2
+    // R2 (A-C, D-F, G-I)
     { r: 2, c: 0, label: "Well Name", value: data.wellName as string },
     { r: 2, c: 3, label: "Hole Size (inch)", value: data.holeSize as string },
     { r: 2, c: 6, label: "Rig Name", value: data.rigName as string },
-    // R3
+    
+    // R3 (A-C, D-F, G-I)
     { r: 3, c: 0, label: "M. Depth (m)", value: data.mDepth as number, type: 'n' as const },
     { r: 3, c: 3, label: "GLE / RTE (m)", value: data.gleRte as string },
     { r: 3, c: 6, label: "Rig Type", value: data.rigType as string },
-    // R4
+    
+    // R4 (A-C, D-F, G-I, J-L, M-O)
     { r: 4, c: 0, label: "Field Name", value: data.fieldName as string },
     { r: 4, c: 3, label: "W.D (m)", value: data.wD as number, type: 'n' as const },
     { r: 4, c: 6, label: "Customer", value: data.customer as string },
-    // R5
+    { r: 4, c: 9, label: "Last Survey TVD (m)", value: data.lastSurveyTvdM as number, type: 'n' as const },
+    { r: 4, c: 12, label: "Inc. (°)", value: data.inc as number, type: 'n' as const },
+    
+    // R5 (A-C, D-F, G-I, J-L, M-O)
     { r: 5, c: 0, label: "Well Purpose", value: data.wellPurpose as string },
     { r: 5, c: 3, label: "TVD (m)", value: data.tvd as number, type: 'n' as const },
     { r: 5, c: 6, label: "Contractor", value: data.contractor as string },
-    // R6
+    { r: 5, c: 9, label: "Last Kick Off Point (m)", value: data.lastKickOfPointM as number, type: 'n' as const },
+    { r: 5, c: 12, label: "Azi. (°)", value: data.azi as number, type: 'n' as const },
+    
+    // R6 (A-C, D-F, G-I, J-L)
     { r: 6, c: 0, label: "Well Type", value: data.wellType as string },
     { r: 6, c: 3, label: "ML Unit ID", value: data.mlUnitId as string },
     { r: 6, c: 6, label: "Last Survey @ m", value: data.lastSurveyM as number, type: 'n' as const },
-    // R7
+    { r: 6, c: 9, label: "Last Casing @ m", value: data.lastCasingM as number, type: 'n' as const },
+    
+    // R7 (A-C, D-F, G-I)
     { r: 7, c: 0, label: "Last Formation", value: data.lastFormation as string },
     { r: 7, c: 3, label: "Last Formation @ m", value: data.lastFormationM as number, type: 'n' as const },
     { r: 7, c: 6, label: "Last Casing Size (inch)", value: data.lastCasingSize as number, type: 'n' as const },
@@ -139,7 +149,7 @@ export function generateNidcExcelBase64(data: ReportData): string {
     currentRow++;
   });
   
-  // --- Rows 8-15: Bit Data (Adjusted to start at R8, but columns A-D) ---
+  // --- Rows 8-14: Bit Data (Adjusted to start at R8, but columns A-D) ---
   currentRow = 8;
   setCell(ws, currentRow, 0, "Present Bit"); mergeCells(ws, currentRow, 0, currentRow, 1);
   setCell(ws, currentRow, 2, "Pulled Out Bit"); mergeCells(ws, currentRow, 2, currentRow, 3);
