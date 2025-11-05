@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FormField } from '@/components/FormField';
 import { useFormContext } from 'react-hook-form';
 import { ReportData } from '@/types/report';
-import { JalaliDatePicker } from '@/components/JalaliDatePicker';
+import { CalibrationRow } from './equipment/CalibrationRow'; // Import new component
 
 const CALIBRATION_EQUIPMENT = [
     { key: 'gasDetector', label: 'Gas Detector' },
@@ -16,17 +16,8 @@ const CALIBRATION_EQUIPMENT = [
     { key: 'calcimeter', label: 'Calcimeter' },
 ];
 
-const RESULT_OPTIONS = [
-    { value: 'OK', label: 'OK' },
-    { value: 'Failed', label: 'Failed' },
-];
-
 const EquipmentTab: React.FC = () => {
     const { watch, setValue } = useFormContext<ReportData>();
-
-    const updateCalibration = (equipmentKey: keyof ReportData['equipmentCalibration'], field: 'testDate' | 'calibratedDate' | 'result', value: string) => {
-        setValue(`equipmentCalibration.${equipmentKey}.${field}` as any, value as any);
-    };
 
     return (
         <div className="space-y-8 p-4">
@@ -34,30 +25,27 @@ const EquipmentTab: React.FC = () => {
 
             {/* Equipment Calibration Table */}
             <h3 className="text-xl font-semibold text-[#003366]">Equipment Calibration</h3>
-            <div className="space-y-4">
-                {CALIBRATION_EQUIPMENT.map(({ key, label }) => (
-                    <div key={key} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end border-b pb-4">
-                        <Label className="font-medium text-lg col-span-1">{label}</Label>
-                        
-                        <JalaliDatePicker
-                            label="Test Date"
-                            value={watch(`equipmentCalibration.${key}.testDate` as any) || ''}
-                            onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'testDate', val)}
+            <div className="border rounded-lg overflow-y-auto max-h-[400px]">
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-10 bg-muted/50 p-4 grid grid-cols-4 gap-4 border-b border-border">
+                    <Label className="font-bold text-base col-span-1 text-foreground">Equipment</Label>
+                    <Label className="font-bold text-base text-foreground">Test Date</Label>
+                    <Label className="font-bold text-base text-foreground">Calibrated Date</Label>
+                    <Label className="font-bold text-base text-foreground">Result</Label>
+                </div>
+
+                {/* Content Rows */}
+                <div className="p-4">
+                    {CALIBRATION_EQUIPMENT.map(({ key, label }) => (
+                        <CalibrationRow
+                            key={key}
+                            label={label}
+                            equipmentKey={key as keyof ReportData['equipmentCalibration']}
+                            watch={watch}
+                            setValue={setValue}
                         />
-                        <JalaliDatePicker
-                            label="Calibrated Date"
-                            value={watch(`equipmentCalibration.${key}.calibratedDate` as any) || ''}
-                            onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'calibratedDate', val)}
-                        />
-                        <FormField
-                            label="Result"
-                            type="select"
-                            value={watch(`equipmentCalibration.${key}.result` as any) || ''}
-                            onChange={(val) => updateCalibration(key as keyof ReportData['equipmentCalibration'], 'result', val as string)}
-                            options={RESULT_OPTIONS}
-                        />
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             <Separator />

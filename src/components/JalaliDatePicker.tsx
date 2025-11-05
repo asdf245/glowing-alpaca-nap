@@ -36,9 +36,12 @@ export function JalaliDatePicker({ label, value, onChange, required = false }: J
 
   return (
     <div className="grid gap-1.5">
-      <Label>
-        {label} {required && <span className="text-destructive">*</span>}
-      </Label>
+      {label && (
+        <Label>
+          {label}
+          {required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -3,7 +3,7 @@ import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
 import { ReportData } from '@/types/report';
 
-export const useReportActions = (onNewReport: () => void) => {
+export const useReportActions = (onNewReport: () => void, triggerValidation?: () => Promise<boolean>) => {
   const { report, autoSave, newReport } = useReportStore();
 
   const handleExport = async (type: 'excel' | 'pdf', data: ReportData) => {
@@ -36,17 +36,29 @@ export const useReportActions = (onNewReport: () => void) => {
   };
 
   const handleSaveDraft = async () => {
-    await autoSave(); // Trigger IndexedDB persistence
+    let isValid = true;
+    if (triggerValidation) {
+        // Trigger validation for all fields
+        isValid = await triggerValidation();
+    }
+    
+    await autoSave(); // Trigger IndexedDB persistence regardless of validation status
+
+    if (!isValid) {
+        toast.warning("Draft saved locally, but please fix validation errors.");
+    } else {
+        toast.info("Draft saved locally.");
+    }
+    
     if (window.electron) {
       // Trigger the main process to save to JSON file
       const result = await ipcRenderer.invoke('save-report', report);
       if (result?.success) {
+        // Only show success toast for file save if validation passed or if we only care about file system success
         toast.success("Draft saved to Documents folder.");
       } else {
         toast.error("Failed to save draft to file system.");
       }
-    } else {
-      toast.success("Draft saved locally (IndexedDB).");
     }
   };
   

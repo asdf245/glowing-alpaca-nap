@@ -6,13 +6,13 @@ import { ReportData, ReportSchema } from '@/types/report';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { useReportActions } from '@/hooks/useReportActions'; // Import the new hook
+import { useReportActions } from '@/hooks/useReportActions';
 
 // Tab Imports
 import GeneralTab from '@/components/tabs/GeneralTab';
 import BitDataTab from '@/components/tabs/BitDataTab';
 import DrillingTab from '@/components/tabs/DrillingTab';
-import PetroleumCalculations from '@/components/tabs/PetroleumCalculations'; // New Import
+import PetroleumCalculations from '@/components/tabs/PetroleumCalculations';
 import LithologyTab from '@/components/tabs/LithologyTab';
 import GasDataTab from '@/components/tabs/GasDataTab';
 import OperationsTab from '@/components/tabs/OperationsTab';
@@ -30,10 +30,13 @@ const Index = () => {
     mode: 'onChange',
   });
 
-  const { watch, reset, handleSubmit } = methods;
+  const { watch, reset, handleSubmit, trigger } = methods;
   
-  // Initialize Report Actions hook
-  const { handleExportExcel, handleExportPDF } = useReportActions(() => setActiveTab('general'));
+  // Initialize Report Actions hook, passing trigger for validation on manual save
+  const { handleExportExcel, handleExportPDF } = useReportActions(
+    () => setActiveTab('general'),
+    trigger
+  );
 
   // Effect 1: Sync RHF changes back to Zustand store for persistence and global access
   useEffect(() => {
