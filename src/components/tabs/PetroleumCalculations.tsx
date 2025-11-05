@@ -7,7 +7,6 @@ import { VolumeResults } from './petroleum/VolumeResults';
 import { HydraulicResults } from './petroleum/HydraulicResults';
 import { PressureResults } from './petroleum/PressureResults';
 import { InputSummary } from './petroleum/InputSummary';
-import { RheologyResults } from './petroleum/RheologyResults';
 
 export const PetroleumCalculations = () => {
   const {
@@ -28,10 +27,6 @@ export const PetroleumCalculations = () => {
     emw,
     mamw,
     tripMargin,
-    pv,
-    yp,
-    n,
-    k,
   } = usePetroleumCalculations();
 
   return (
@@ -46,13 +41,11 @@ export const PetroleumCalculations = () => {
       <StringDataTable />
       <Separator />
 
-      <h3 className="text-xl font-semibold text-[#003366]">Pump & Rheology Inputs</h3>
+      <h3 className="text-xl font-semibold text-[#003366]">Pump Inputs (Liner & Stroke)</h3>
       <PumpInputs />
       <Separator />
       
-      <h3 className="text-xl font-semibold text-[#003366]">Rheology & Power Law Results</h3>
-      <RheologyResults pv={pv} yp={yp} n={n} k={k} />
-      <Separator />
+      {/* Rheology Results removed as PV/YP/n/k are now displayed in DrillingTab */}
 
       <h3 className="text-xl font-semibold text-[#003366]">Volume & Circulation Time</h3>
       <VolumeResults

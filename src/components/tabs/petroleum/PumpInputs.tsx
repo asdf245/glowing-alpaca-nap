@@ -20,20 +20,6 @@ export const PumpInputs = () => {
         value={watch('strokeLengthIn')}
         onChange={(val) => setValue('strokeLengthIn', val as number)}
       />
-      <FormField
-        label="Rheology @ 600 RPM"
-        unit="°"
-        type="number"
-        value={watch('rheology600')}
-        onChange={(val) => setValue('rheology600', val as number)}
-      />
-      <FormField
-        label="Rheology @ 300 RPM"
-        unit="°"
-        type="number"
-        value={watch('rheology300')}
-        onChange={(val) => setValue('rheology300', val as number)}
-      />
     </div>
   );
 };

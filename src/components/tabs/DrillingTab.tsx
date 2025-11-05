@@ -14,6 +14,7 @@ const DrillingTab: React.FC = () => {
   const rheology600 = watch('rheology600');
   const rheology300 = watch('rheology300');
   
+  // PV/YP are calculated if R600/R300 are provided
   const isRheologyCalculated = (rheology600 || 0) > 0 && (rheology300 || 0) > 0;
 
   // Auto-Calculations (Meterage and ROP remain here)
@@ -147,12 +148,16 @@ const DrillingTab: React.FC = () => {
         {renderCalculatedField("EMW", "pcf", "emw")}
         {renderCalculatedField("MAMW", "pcf", "mamw")}
         {renderCalculatedField("Trip Margin (TM)", "pcf", "tripMargin")}
+        
+        {/* Power Law Indices */}
+        {renderCalculatedField("Flow Index (n)", "", "n")}
+        {renderCalculatedField("Consistency Index (k)", "", "k")}
       </div>
 
       <Separator />
 
       {/* Mud Data */}
-      <h3 className="text-xl font-semibold text-[#003366]">Mud Data</h3>
+      <h3 className="text-xl font-semibold text-[#003366]">Mud Data & Rheology Inputs</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <FormField
           label="Mud Weight"
@@ -172,6 +177,24 @@ const DrillingTab: React.FC = () => {
           error={getError('viscosity')}
           required
         />
+        
+        {/* Rheology Inputs */}
+        <FormField
+          label="Rheology @ 600 RPM"
+          unit="°"
+          type="number"
+          value={rheology600}
+          onChange={(val) => setValue('rheology600', val as number)}
+        />
+        <FormField
+          label="Rheology @ 300 RPM"
+          unit="°"
+          type="number"
+          value={rheology300}
+          onChange={(val) => setValue('rheology300', val as number)}
+        />
+        
+        {/* Calculated PV/YP */}
         <FormField
           label="P.V."
           unit="cp"
@@ -190,6 +213,7 @@ const DrillingTab: React.FC = () => {
           readOnly={isRheologyCalculated}
           isCalculated={isRheologyCalculated}
         />
+        
         <FormField
           label="Gels"
           unit="10sec/10min"
