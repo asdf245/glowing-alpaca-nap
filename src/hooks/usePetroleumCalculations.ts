@@ -42,12 +42,18 @@ export interface CalculationResults {
     holeSize: string;
     nozzle: string;
     tvd: number;
-    pv: number;
-    yp: number;
-    linerSizeIn: number;
-    strokeLengthIn: number;
+    
+    // Rheology Inputs
     rheology600: number;
     rheology300: number;
+    linerSizeIn: number;
+    strokeLengthIn: number;
+    
+    // Rheology Outputs (Derived from R600/R300)
+    pv: number;
+    yp: number;
+    n: number;
+    k: number;
     
     // Volumes
     totalHoleVolume: number;
@@ -79,17 +85,17 @@ export function usePetroleumCalculations(): CalculationResults {
 
   // Watch all relevant inputs
   const inputs = watch([
-    'flowRate', 'mudWeight', 'spp', 'holeSize', 'tvd', 'pv', 'yp', 
+    'flowRate', 'mudWeight', 'spp', 'holeSize', 'tvd', 
     'rheology600', 'rheology300', 'linerSizeIn', 'strokeLengthIn', 
     'stringData', 'wellProfile', 'presentBit.nozzle'
   ]);
 
   const [
-    flowRate, mudWeight, spp, holeSize, tvd, pv, yp, 
+    flowRate, mudWeight, spp, holeSize, tvd, 
     rheology600, rheology300, linerSizeIn, strokeLengthIn, 
     stringData, wellProfile, nozzle
   ] = inputs as [
-    number, number, number, string, number, number, number, 
+    number, number, number, string, number, 
     number, number, number, number, 
     StringDataEntry[], WellProfileEntry[], string
   ];
@@ -101,14 +107,43 @@ export function usePetroleumCalculations(): CalculationResults {
   const Dh_str = holeSize || '8.5'; 
   const Nozzle_str = nozzle || '12-12-12'; 
   const TVD_M = tvd || 0; 
-  const PV = pv || 0; 
-  const YP = yp || 0; 
   const Liner_in = linerSizeIn || 6.5; 
   const Stroke_in = strokeLengthIn || 12; 
   
   // Conversion factors
   const TVD_FT = TVD_M * FT_PER_M; // TVD in feet
   const MW_PPG = MW_PCF / 7.48; // Mud Weight from pcf to ppg (7.48 pcf = 1 ppg)
+
+  // --- Rheology Calculations (Power Law Model) ---
+  const R600 = rheology600 || 0;
+  const R300 = rheology300 || 0;
+  
+  let calculatedPV = 0;
+  let calculatedYP = 0;
+  let n_index = 0;
+  let k_index = 0;
+  
+  if (R600 > 0 && R300 > 0 && R600 >= R300) {
+      // 1. Calculate PV and YP from R600/R300
+      calculatedPV = R600 - R300;
+      calculatedYP = R300 - calculatedPV;
+      
+      // 2. Calculate Power Law Index (n)
+      if (R300 > 0) {
+          // n = 3.32 * log10(R600 / R300)
+          n_index = 3.32 * Math.log10(R600 / R300);
+      }
+      
+      // 3. Calculate Consistency Index (k)
+      if (n_index > 0) {
+          // Shear rate at 300 RPM is 510 s^-1
+          k_index = R300 / (510 ** n_index);
+      }
+  }
+  
+  // Use calculated PV/YP for hydraulic calculations
+  const PV_used = calculatedPV;
+  const YP_used = calculatedYP;
 
   // --- Volume Calculations ---
   
@@ -118,7 +153,7 @@ export function usePetroleumCalculations(): CalculationResults {
 
   // 1. Calculate Total Hole Volume (V_Hole)
   wellProfile.forEach(wp => {
-      const L_ft = (wp.bottomM || 0) - (wp.topM || 0);
+      const L_ft = ((wp.bottomM || 0) - (wp.topM || 0)) * FT_PER_M;
       const ID_hole = wp.idIn || 0;
       if (ID_hole > 0 && L_ft > 0) {
           totalHoleVolume += (ID_hole * ID_hole / CONST_CAPACITY) * L_ft;
@@ -202,11 +237,11 @@ export function usePetroleumCalculations(): CalculationResults {
     hsi = bitHhp / (holeDiameter * holeDiameter);
   }
 
-  // 5. Annular Pressure Loss (APL) - PSI (Simplified)
+  // 5. Annular Pressure Loss (APL) - PSI (Simplified, using derived PV)
   let annularPressureLoss = 0;
-  if (MW_PPG > 0 && PV > 0 && Q > 0 && TVD_FT > 0) {
-    // Simplified APL calculation (using a generic constant)
-    annularPressureLoss = (MW_PPG * PV * Q * TVD_FT) / 1000000; 
+  if (MW_PPG > 0 && PV_used > 0 && Q > 0 && TVD_FT > 0) {
+    // Simplified APL calculation (using a generic constant based on PV)
+    annularPressureLoss = (MW_PPG * PV_used * Q * TVD_FT) / 1000000; 
   }
 
   // 6. Equivalent Circulating Density (ECD) - pcf
@@ -244,6 +279,21 @@ export function usePetroleumCalculations(): CalculationResults {
 
   // Update the form context with calculated values
   React.useEffect(() => {
+    // Update PV/YP in the form state if derived from R600/R300
+    if (R600 > 0 && R300 > 0 && R600 >= R300) {
+        setValue('pv', parseFloat(calculatedPV.toFixed(2)));
+        setValue('yp', parseFloat(calculatedYP.toFixed(2)));
+    } else {
+        // If rheology inputs are cleared, clear the calculated PV/YP in the form state
+        setValue('pv', undefined);
+        setValue('yp', undefined);
+    }
+    
+    // Update Power Law indices
+    setValue('n', parseFloat(n_index.toFixed(4)));
+    setValue('k', parseFloat(k_index.toFixed(4)));
+    
+    // Hydraulic/Volume updates
     setValue('annVelocity', parseFloat(annVelocity.toFixed(2)));
     setValue('jetVelocity', parseFloat(jetVelocity.toFixed(2)));
     setValue('bitHhp', parseFloat(bitHhp.toFixed(2)));
@@ -277,12 +327,16 @@ export function usePetroleumCalculations(): CalculationResults {
     holeSize: Dh_str,
     nozzle: Nozzle_str,
     tvd: TVD_M,
-    pv: PV,
-    yp: YP,
     linerSizeIn: Liner_in,
     strokeLengthIn: Stroke_in,
-    rheology600: rheology600,
-    rheology300: rheology300,
+    rheology600: R600,
+    rheology300: R300,
+    
+    // Rheology returns
+    pv: parseFloat(PV_used.toFixed(2)),
+    yp: parseFloat(YP_used.toFixed(2)),
+    n: parseFloat(n_index.toFixed(4)),
+    k: parseFloat(k_index.toFixed(4)),
     
     totalHoleVolume: parseFloat(totalHoleVolume.toFixed(2)),
     annulusVolume: parseFloat(annulusVolume.toFixed(2)),

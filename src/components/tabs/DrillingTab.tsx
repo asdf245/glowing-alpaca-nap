@@ -10,6 +10,11 @@ const DrillingTab: React.FC = () => {
   const depthFrom = watch('depthFrom') || 0;
   const depthTo = watch('depthTo') || 0;
   const hours = watch('hours') || 0;
+  
+  const rheology600 = watch('rheology600');
+  const rheology300 = watch('rheology300');
+  
+  const isRheologyCalculated = (rheology600 || 0) > 0 && (rheology300 || 0) > 0;
 
   // Auto-Calculations (Meterage and ROP remain here)
   const meterage = (depthTo as number) > (depthFrom as number) ? (depthTo as number) - (depthFrom as number) : 0;
@@ -150,6 +155,8 @@ const DrillingTab: React.FC = () => {
           type="number"
           value={watch('pv')}
           onChange={(val) => setValue('pv', val as number)}
+          readOnly={isRheologyCalculated}
+          isCalculated={isRheologyCalculated}
         />
         <FormField
           label="YP"
@@ -157,6 +164,8 @@ const DrillingTab: React.FC = () => {
           type="number"
           value={watch('yp')}
           onChange={(val) => setValue('yp', val as number)}
+          readOnly={isRheologyCalculated}
+          isCalculated={isRheologyCalculated}
         />
         <FormField
           label="Gels"

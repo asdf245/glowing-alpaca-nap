@@ -143,6 +143,8 @@ export const ReportSchema = z.object({
   emw: z.number().optional(), // Added
   tripMargin: z.number().optional(), // Added
   mamw: z.number().optional(), // Added MAMW
+  n: z.number().optional(), // Flow Behavior Index (Power Law)
+  k: z.number().optional(), // Consistency Index (Power Law)
   
   mudWeight: z.number().min(0, "Mud Weight is required"),
   viscosity: z.number().min(0, "Viscosity is required"),
