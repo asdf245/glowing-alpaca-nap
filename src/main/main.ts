@@ -96,7 +96,42 @@ function setupIpc(mainWindow: BrowserWindow) {
     }
   });
   
-  // ... other IPC handlers (load-report, export-pdf, etc.)
+  ipcMain.handle('export-pdf-request', async (event, { wellName, date }) => {
+    const webContents = event.sender;
+    const defaultFilename = `Daily-Mud-Logging-Report-${wellName || 'Untitled'}-${date || 'N/A'}.pdf`;
+
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Export Report to PDF',
+      defaultPath: path.join(USER_DOCUMENTS, defaultFilename),
+      filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, message: 'Export cancelled' };
+    }
+
+    try {
+      // Use Electron's built-in PDF generation
+      const pdfBuffer = await webContents.printToPDF({
+        pageSize: 'A4',
+        printBackground: true,
+        landscape: false,
+        margins: {
+          top: 10,
+          bottom: 10,
+          left: 10,
+          right: 10,
+        },
+      });
+
+      await fs.writeFile(filePath, pdfBuffer);
+      console.log('Generated PDF file successfully at:', filePath);
+      return { success: true, path: filePath };
+    } catch (error) {
+      console.error('Failed to generate or write PDF file:', error);
+      return { success: false, message: `Failed to generate PDF: ${error}` };
+    }
+  });
 }
 
 // --- Menu Bar Setup ---

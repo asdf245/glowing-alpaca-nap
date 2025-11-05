@@ -3,7 +3,7 @@ import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
 import { ReportData, ReportSchema } from '@/types/report';
 import { generateNidcExcelBase64 } from '@/utils/excelExport';
-import { z } from 'zod'; // Import Zod for schema validation
+import { z } from 'zod';
 
 export const useReportActions = (onNewReport: () => void, triggerValidation?: () => Promise<boolean>) => {
   const { report, autoSave, newReport } = useReportStore();
@@ -14,7 +14,7 @@ export const useReportActions = (onNewReport: () => void, triggerValidation?: ()
       return { success: false };
     }
     
-    const channel = type === 'excel' ? 'export-excel' : 'export-pdf';
+    const channel = type === 'excel' ? 'export-excel' : 'export-pdf-request'; // Changed channel for PDF
     const loadingToastId = toast.loading(`Preparing ${type.toUpperCase()} export...`);
 
     try {
@@ -23,23 +23,22 @@ export const useReportActions = (onNewReport: () => void, triggerValidation?: ()
       if (type === 'excel') {
         // Generate Excel file as Base64 string
         fileData = generateNidcExcelBase64(data);
-      } else {
-        // PDF generation logic would go here (currently unimplemented)
-        toast.warning("PDF export is not yet implemented.");
-        toast.dismiss(loadingToastId);
-        return { success: false };
+      } else if (type === 'pdf') {
+        // For PDF, we send the validated data and let the main process handle printToPDF
+        // We don't need fileData here, but we need to send metadata for the filename.
+        // The main process will use the current webContents to generate the PDF.
+        fileData = JSON.stringify({ wellName: data.wellName, date: data.date });
       }
 
       if (!fileData) {
         toast.dismiss(loadingToastId);
-        toast.error(`Failed to generate ${type.toUpperCase()} data.`);
+        toast.error(`Failed to prepare ${type.toUpperCase()} data.`);
         return { success: false };
       }
 
       // Trigger the main process to handle file save dialog and file write
-      // We send the file data (Base64 string) along with metadata for the default filename
       const result = await ipcRenderer.invoke(channel, {
-          data: fileData,
+          data: fileData, // Base64 for Excel, metadata JSON string for PDF
           wellName: data.wellName,
           date: data.date,
           type: type,
