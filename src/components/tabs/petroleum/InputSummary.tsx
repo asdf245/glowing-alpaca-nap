@@ -26,7 +26,7 @@ const parseNozzleAreaForDisplay = (nozzleStr: string): string => {
 
 export const InputSummary = () => {
   const {
-    flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp,
+    flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp, n, k,
     linerSizeIn, strokeLengthIn,
   } = usePetroleumCalculations();
 
@@ -40,6 +40,8 @@ export const InputSummary = () => {
       <p>True Vertical Depth (TVD): <span className="font-medium text-foreground">{tvd} m</span></p>
       <p>Plastic Viscosity (PV): <span className="font-medium text-foreground">{pv} cp</span></p>
       <p>Yield Point (YP): <span className="font-medium text-foreground">{yp} lbf/100ft²</span></p>
+      <p>Flow Index (n): <span className="font-medium text-foreground">{n}</span></p>
+      <p>Consistency Index (k): <span className="font-medium text-foreground">{k}</span></p>
       <p>Liner Size: <span className="font-medium text-foreground">{linerSizeIn} in</span></p>
       <p>Stroke Length: <span className="font-medium text-foreground">{strokeLengthIn} in</span></p>
     </div>
