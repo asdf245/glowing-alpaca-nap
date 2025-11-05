@@ -8,6 +8,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useReportActions } from '@/hooks/useReportActions';
 import { useParams, useNavigate } from 'react-router-dom'; // Import routing hooks
+import { useElectronMenu } from '@/hooks/useElectronMenu'; // Import the new hook
 
 // Tab Imports
 import GeneralTab from '@/components/tabs/GeneralTab';
@@ -42,6 +43,12 @@ const ReportForm = () => {
     () => setActiveTab('general'),
     trigger
   );
+  
+  // Integrate Electron Menu Hook
+  useElectronMenu(() => {
+    setActiveTab('general');
+    navigate('/report');
+  });
 
   // Effect 0: Load report if ID is present in URL
   useEffect(() => {
