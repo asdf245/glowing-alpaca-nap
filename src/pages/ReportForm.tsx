@@ -87,7 +87,7 @@ const ReportForm = () => {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentReportId, reset, report]); 
+  }, [currentReportId, reset, id, navigate]); // Removed 'report' from dependencies
 
   // RHF Success Callback (only runs if validation passes)
   const onSubmit = (data: ReportData, exportType: 'excel' | 'pdf') => {
