@@ -97,9 +97,48 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
     mergeCells(ws, item.r, item.c + 1, item.r, item.c + 2); 
   });
 
-
-  // --- Rows 8-15: Bit Data ---
-  let currentRow = 8;
+  // --- Rows 9-X: Well Profile Data ---
+  let currentRow = 9;
+  setCell(ws, currentRow, 12, "Well Profile (Casing/Hole Sections)"); mergeCells(ws, currentRow, 12, currentRow, 16);
+  currentRow++;
+  setCell(ws, currentRow, 12, "Type");
+  setCell(ws, currentRow, 13, "ID (in)");
+  setCell(ws, currentRow, 14, "TOP (m)");
+  setCell(ws, currentRow, 15, "BOTTOM (m)");
+  setCell(ws, currentRow, 16, "Length (m)");
+  currentRow++;
+  
+  (data.wellProfile as any[]).forEach(entry => {
+    setCell(ws, currentRow, 12, entry.type);
+    setCell(ws, currentRow, 13, entry.idIn, 'n');
+    setCell(ws, currentRow, 14, entry.topM, 'n');
+    setCell(ws, currentRow, 15, entry.bottomM, 'n');
+    setCell(ws, currentRow, 16, entry.lengthM, 'n');
+    currentRow++;
+  });
+  
+  // --- Rows X-Y: Drill String Data ---
+  currentRow = Math.max(currentRow, 15); // Ensure a minimum starting row for string data
+  setCell(ws, currentRow, 12, "Drill String Data (BHA/DP)"); mergeCells(ws, currentRow, 12, currentRow, 16);
+  currentRow++;
+  setCell(ws, currentRow, 12, "Type");
+  setCell(ws, currentRow, 13, "ID (in)");
+  setCell(ws, currentRow, 14, "OD (in)");
+  setCell(ws, currentRow, 15, "lb/ft");
+  setCell(ws, currentRow, 16, "Length (m)");
+  currentRow++;
+  
+  (data.stringData as any[]).forEach(entry => {
+    setCell(ws, currentRow, 12, entry.type);
+    setCell(ws, currentRow, 13, entry.idIn, 'n');
+    setCell(ws, currentRow, 14, entry.odIn, 'n');
+    setCell(ws, currentRow, 15, entry.lbFt, 'n');
+    setCell(ws, currentRow, 16, entry.lengthM, 'n');
+    currentRow++;
+  });
+  
+  // --- Rows 8-15: Bit Data (Adjusted to start at R8, but columns A-D) ---
+  currentRow = 8;
   setCell(ws, currentRow, 0, "Present Bit"); mergeCells(ws, currentRow, 0, currentRow, 1);
   setCell(ws, currentRow, 2, "Pulled Out Bit"); mergeCells(ws, currentRow, 2, currentRow, 3);
   currentRow++;
