@@ -1,4 +1,3 @@
-import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { usePetroleumCalculations } from '@/hooks/usePetroleumCalculations';
 import { WellProfileTable } from './petroleum/WellProfileTable';

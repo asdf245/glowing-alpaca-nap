@@ -1,4 +1,3 @@
-import React from 'react';
 import { DynamicTable } from '@/components/DynamicTable';
 import { WellProfileEntry } from '@/types/report';
 

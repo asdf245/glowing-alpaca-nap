@@ -1,6 +1,6 @@
-import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormField } from '@/components/FormField';
+import { ReportData } from '@/types/report';
 
 export const PumpInputs = () => {
   const { setValue, watch } = useFormContext<ReportData>();

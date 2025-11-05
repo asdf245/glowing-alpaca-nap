@@ -1,4 +1,3 @@
-import React from 'react';
 import { usePetroleumCalculations } from '@/hooks/usePetroleumCalculations';
 
 const parseHoleSizeForDisplay = (sizeStr: string): string => {
@@ -6,12 +5,12 @@ const parseHoleSizeForDisplay = (sizeStr: string): string => {
   const parts = sizeStr.split(' ');
   let size = 0;
   if (parts.length === 1) {
-    size = parseFloat(parts);
+    size = parseFloat(parts[0]);
   } else if (parts.length === 2) {
-    const whole = parseFloat(parts);
+    const whole = parseFloat(parts[0]);
     const fractionParts = parts[1].split('/');
     if (fractionParts.length === 2) {
-      size = whole + (parseFloat(fractionParts) / parseFloat(fractionParts[1]));
+      size = whole + (parseFloat(fractionParts[0]) / parseFloat(fractionParts[1]));
     }
   }
   return isNaN(size) || size <= 0 ? '8.5' : size.toFixed(2);
@@ -28,7 +27,7 @@ const parseNozzleAreaForDisplay = (nozzleStr: string): string => {
 export const InputSummary = () => {
   const {
     flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp,
-    linerSizeIn, strokeLengthIn, rheology600, rheology300
+    linerSizeIn, strokeLengthIn,
   } = usePetroleumCalculations();
 
   return (
