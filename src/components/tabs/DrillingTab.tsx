@@ -22,6 +22,18 @@ const DrillingTab: React.FC = () => {
 
   const getError = (field: keyof ReportData) => errors[field]?.message as string | undefined;
 
+  const renderCalculatedField = (label: string, unit: string, field: keyof ReportData) => (
+    <FormField
+      label={label}
+      unit={unit}
+      type="number"
+      value={watch(field)}
+      onChange={() => {}} // Read-only
+      isCalculated
+      readOnly
+    />
+  );
+
   return (
     <div className="space-y-8 p-4">
       <h2 className="text-2xl font-bold text-[#003366]">3. Drilling Parameters</h2>
@@ -120,11 +132,21 @@ const DrillingTab: React.FC = () => {
 
       <Separator />
 
-      {/* Hydraulic Data (Removed fields: Ann Velocity, Jet Velocity, Bit HHP, HSI, ECD) */}
-      <h3 className="text-xl font-semibold text-[#003366]">Hydraulic Data (Calculated in 'Calculations' Tab)</h3>
-      <p className="text-sm text-muted-foreground">
-        Annular Velocity, Jet Velocity, Bit HHP, HSI, and ECD are now calculated automatically in the "Calculations" tab based on Flow Rate, SPP, Mud Weight, Hole Size, Nozzle, and TVD inputs.
-      </p>
+      {/* Hydraulic Data (Calculated) */}
+      <h3 className="text-xl font-semibold text-[#003366]">Calculated Hydraulic & Pressure Data</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {renderCalculatedField("Annular Velocity (AV)", "m/min", "annVelocity")}
+        {renderCalculatedField("Jet Velocity (JV)", "m/s", "jetVelocity")}
+        {renderCalculatedField("Bit HHP", "HP", "bitHhp")}
+        {renderCalculatedField("HSI", "HHP/inch²", "hsi")}
+        {renderCalculatedField("ECD", "pcf", "ecd")}
+        
+        {renderCalculatedField("Hydrostatic Pressure (HP)", "PSI", "hydrostaticPressure")}
+        {renderCalculatedField("Annular Pressure Loss (APL)", "PSI", "annularPressureLoss")}
+        {renderCalculatedField("EMW", "pcf", "emw")}
+        {renderCalculatedField("MAMW", "pcf", "mamw")}
+        {renderCalculatedField("Trip Margin (TM)", "pcf", "tripMargin")}
+      </div>
 
       <Separator />
 
