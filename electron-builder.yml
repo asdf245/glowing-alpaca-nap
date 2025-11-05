@@ -1,6 +1,6 @@
-appId: com.example.myapp
-productName: MyApp
-copyright: Copyright © 2025 Example
+appId: com.nidc.mudlog-reporter
+productName: NIDC Mudlog Reporter
+copyright: Copyright © 2025 NIDC
 directories:
   output: dist
   buildResources: build
@@ -11,12 +11,17 @@ win:
   target:
     - nsis
     - portable
-    - msi
   icon: build/icon.ico
   requestedExecutionLevel: asInvoker
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: NIDC Mudlog Reporter
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  license: LICENSE.txt
 mac:
   target:
     - dmg
@@ -26,6 +31,5 @@ linux:
   target:
     - AppImage
     - deb
-    - rpm
   icon: build/icon.png
   category: Utility
