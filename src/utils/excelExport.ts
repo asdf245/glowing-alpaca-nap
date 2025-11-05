@@ -252,30 +252,34 @@ export function generateNidcExcelBase64(data: ReportData): string {
   setCell(ws, currentRow, 9, "Displace Volume (bbl)"); setCell(ws, currentRow, 10, data.displaceVolume as number, 'n');
   setCell(ws, currentRow, 11, "Lag Time (min)"); setCell(ws, currentRow, 12, data.lagTimeMin as number, 'n');
   setCell(ws, currentRow, 13, "Circulation Strokes"); setCell(ws, currentRow, 14, data.completeCirculationStrokes as number, 'n');
+  currentRow++;
 
-  // --- Rows 30-31: Drilling Parameters (WOB, SPP, etc.) ---
-  currentRow = 30;
+  // --- Rows 26-27: Drilling Parameters (WOB, SPP, etc.) ---
+  currentRow = 26;
+  setCell(ws, currentRow, 0, "Drilling Parameters"); mergeCells(ws, currentRow, 0, currentRow, 10);
+  currentRow++;
   setCell(ws, currentRow, 0, "WOB (Klbf)"); setCell(ws, currentRow, 1, data.wob as number, 'n');
   setCell(ws, currentRow, 2, "SPP (PSI)"); setCell(ws, currentRow, 3, data.spp as number, 'n');
   setCell(ws, currentRow, 4, "Flow Rate (GPM)"); setCell(ws, currentRow, 5, data.flowRate as number, 'n');
   setCell(ws, currentRow, 6, "RPM + TURB. (rpm)"); setCell(ws, currentRow, 7, data.rpmTurb as number, 'n');
   setCell(ws, currentRow, 8, "Torque (klbf.ft)"); setCell(ws, currentRow, 9, data.torque as number, 'n');
+  currentRow++;
   
-  // --- Rows 32-33: Lithological Data (Table Header) ---
-  currentRow = 32;
+  // --- Rows 29-30: Lithological Data (Table Header) ---
+  currentRow = 29;
   setCell(ws, currentRow, 0, "From (m)");
   setCell(ws, currentRow, 1, "To (m)");
   setCell(ws, currentRow, 2, "ROP (m/hr)"); mergeCells(ws, currentRow, 2, currentRow, 4);
   setCell(ws, currentRow, 5, "Lithological Description"); mergeCells(ws, currentRow, 5, currentRow, 10);
   currentRow++;
   
-  currentRow = 33;
+  currentRow = 30;
   setCell(ws, currentRow, 2, "(min)");
   setCell(ws, currentRow, 3, "(max)");
   setCell(ws, currentRow, 4, "(avg)");
   currentRow++;
   
-  // Lithology Data Rows (starting at R34)
+  // Lithology Data Rows (starting at R31)
   (data.lithologyEntries as any[]).forEach(entry => {
     setCell(ws, currentRow, 0, entry.from, 'n');
     setCell(ws, currentRow, 1, entry.to, 'n');
