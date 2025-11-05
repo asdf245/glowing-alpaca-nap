@@ -7,8 +7,8 @@ import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useReportActions } from '@/hooks/useReportActions';
-import { useParams, useNavigate } from 'react-router-dom'; // Import routing hooks
-import { useElectronMenu } from '@/hooks/useElectronMenu'; // Import the new hook
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'; // Import useSearchParams
+import { useElectronMenu } from '@/hooks/useElectronMenu';
 
 // Tab Imports
 import GeneralTab from '@/components/tabs/GeneralTab';
@@ -21,13 +21,21 @@ import OperationsTab from '@/components/tabs/OperationsTab';
 import EquipmentTab from '@/components/tabs/EquipmentTab';
 import ExportTab from '@/components/tabs/ExportTab';
 
+const VALID_TABS = [
+  'general', 'bit', 'drilling', 'calculations', 'lithology', 'gas', 'operations', 'equipment', 'export'
+];
+
 const ReportForm = () => {
   const { report, setReport, currentReportId, loadReport } = useReportStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // Hook to read query parameters
   
-  // If an ID is present in the URL, we start on the General tab, otherwise, we check if we should switch to Export.
-  const [activeTab, setActiveTab] = useState('general');
+  // Determine initial active tab from URL query parameter, defaulting to 'general'
+  const initialTab = searchParams.get('tab');
+  const defaultTab = (initialTab && VALID_TABS.includes(initialTab)) ? initialTab : 'general';
+  
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Initialize React Hook Form with current Zustand state
   const methods = useForm<ReportData>({
