@@ -13,6 +13,7 @@ interface ReportState {
   loadReport: (id: number) => Promise<void>;
   newReport: () => void;
   autoSave: () => Promise<void>;
+  listReports: () => Promise<ReportRecord[]>; // Added listReports
 }
 
 const AUTO_SAVE_INTERVAL = 120000; // 2 minutes
@@ -126,5 +127,21 @@ export const useReportStore = create<ReportState>((set, get) => {
         toast.error("Auto-save failed.");
       }
     },
+    
+    listReports: async () => {
+        try {
+            // Fetch reports, sort by lastModified descending, and limit to 10
+            const reports = await db.reports
+                .orderBy('lastModified')
+                .reverse()
+                .limit(10)
+                .toArray();
+            return reports;
+        } catch (error) {
+            console.error("Failed to list reports:", error);
+            toast.error("Failed to retrieve recent reports.");
+            return [];
+        }
+    }
   };
 });
