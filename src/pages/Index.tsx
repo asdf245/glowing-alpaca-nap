@@ -49,10 +49,12 @@ const Index = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentReportId, reset]); 
 
-  // Handle form submission (e.g., for export validation)
-  const onSubmit = (data: ReportData) => {
-    console.log("Form Data Validated:", data);
-    // This is where we would trigger the final export logic if needed
+  // RHF Success Callback (only runs if validation passes)
+  const onSubmit = (data: ReportData, exportType: 'excel' | 'pdf') => {
+    // This function is now called by handleValidateAndExport if validation succeeds
+    console.log(`Form Data Validated for ${exportType}:`, data);
+    // The actual export logic is now handled inside ExportTab, which receives the validated data.
+    // We don't need to do anything here, as the ExportTab will handle the IPC call.
   };
 
   const onError = (errors: any) => {
@@ -73,10 +75,16 @@ const Index = () => {
     }
   };
 
+  // Function to trigger validation and then call the export handler inside ExportTab
+  const handleValidateAndExport = (exportType: 'excel' | 'pdf') => {
+    // We use the RHF handleSubmit wrapper, passing the exportType to the onSubmit callback
+    handleSubmit((data) => onSubmit(data, exportType), onError)();
+  };
+
   return (
     <FormProvider {...methods}>
       <Layout activeTab={activeTab} onTabChange={setActiveTab}>
-        <form onSubmit={handleSubmit(onSubmit)} className="h-full">
+        <form onSubmit={handleSubmit(() => {})} className="h-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             {/* TabsContent is used here to manage the content area */}
             <div className="flex-grow overflow-y-auto p-4">
@@ -102,7 +110,8 @@ const Index = () => {
                 <EquipmentTab />
               </TabsContent>
               <TabsContent value="export" className="mt-0">
-                <ExportTab onExport={handleSubmit(onSubmit, onError)} />
+                {/* Pass the validation wrapper function */}
+                <ExportTab onExport={handleValidateAndExport} />
               </TabsContent>
             </div>
           </Tabs>

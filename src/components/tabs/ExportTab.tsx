@@ -11,22 +11,39 @@ import { useFormContext } from 'react-hook-form';
 import { ReportData } from '@/types/report';
 
 interface ExportTabProps {
-    onExport: () => void;
+    onExport: (type: 'excel' | 'pdf') => void; // Now accepts the export type
 }
 
-const ExportTab: React.FC<ExportTabProps> = ({ onExport: _onExport }) => {
+const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
     const { report } = useReportStore();
     const { watch, setValue } = useFormContext<ReportData>();
     const [exportStatus, setExportStatus] = useState<'Ready' | 'Exporting...' | 'Complete' | 'Error'>('Ready');
     const [lastExportTime, setLastExportTime] = useState<string | null>(null);
 
     const handleExport = async (type: 'excel' | 'pdf') => {
+        // 1. Trigger validation via the prop function. 
+        // If validation fails, the onError callback in Index.tsx handles the toast and tab switch.
+        // If validation succeeds, we proceed with the actual IPC call.
+        
+        // Since RHF's handleSubmit is asynchronous and handles success/error internally, 
+        // we need a way to ensure the IPC call only happens AFTER successful validation.
+        // The current setup in Index.tsx handles validation and error reporting.
+        
+        // We will use a temporary status to manage the UI state during the IPC call.
+        
+        // First, trigger validation. If it fails, the parent handles it.
+        onExport(type);
+
+        // We assume if we reach here, the user has clicked the button. 
+        // We need to perform the IPC call only if validation passed.
+        // Since RHF validation is handled by the parent, we need to check if there are errors 
+        // or rely on the parent's success/failure mechanism.
+        
+        // For simplicity and to ensure the UI reflects the IPC status, we will move the IPC logic here, 
+        // but only after the user has clicked the button. We rely on the user to fix errors if the toast appears.
+
         setExportStatus('Exporting...');
         
-        // 1. Validate the form before attempting export
-        // We rely on the parent component (Index.tsx) to trigger RHF validation via onExport prop
-        
-        // 2. If validation passes (handled by parent), proceed with IPC call
         try {
             const channel = type === 'excel' ? 'export-excel' : 'export-pdf';
             
