@@ -1,15 +1,18 @@
 appId: com.nidc.mudlog-reporter
 productName: NIDC Mudlog Reporter
-artifactName: NIDC-Mudlog-Reporter-${version}-Setup.exe
+copyright: Copyright © 2025 NIDC
 directories:
   output: dist
   buildResources: build
+files:
+  - dist/**
+  - src/main/**
 win:
   target:
     - nsis
+    - portable
   icon: build/icon.ico
-  certificateFile: null
-  certificatePassword: null
+  requestedExecutionLevel: asInvoker
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
@@ -19,5 +22,14 @@ nsis:
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
   license: LICENSE.txt
-  installerHeader: build/installer-header.bmp
-  installerSidebar: build/installer-sidebar.bmp
+mac:
+  target:
+    - dmg
+    - zip
+  icon: build/icon.icns
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: build/icon.png
+  category: Utility

@@ -11,6 +11,48 @@
     "preview": "vite preview",
     "build:electron": "npm run build && npx electron-builder"
   },
+  "build": {
+    "appId": "com.nidc.mudlog-reporter",
+    "productName": "NIDC Mudlog Reporter",
+    "copyright": "Copyright © 2025 NIDC",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [      "dist/**/*",
+      "src/main/**/*"
+    ],
+    "win": {
+      "target": [        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NIDC Mudlog Reporter",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "license": "LICENSE.txt"
+    },
+    "mac": {
+      "target": [        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": [        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
