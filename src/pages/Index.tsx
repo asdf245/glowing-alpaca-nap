@@ -6,6 +6,7 @@ import { ReportData, ReportSchema } from '@/types/report';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { useReportActions } from '@/hooks/useReportActions'; // Import the new hook
 
 // Tab Imports
 import GeneralTab from '@/components/tabs/GeneralTab';
@@ -29,9 +30,11 @@ const Index = () => {
   });
 
   const { watch, reset, handleSubmit } = methods;
+  
+  // Initialize Report Actions hook
+  const { handleExportExcel, handleExportPDF } = useReportActions(() => setActiveTab('general'));
 
   // Effect 1: Sync RHF changes back to Zustand store for persistence and global access
-  // This runs on every form change.
   useEffect(() => {
     const subscription = watch((value) => {
       // Use setReport to update Zustand state
@@ -51,10 +54,12 @@ const Index = () => {
 
   // RHF Success Callback (only runs if validation passes)
   const onSubmit = (data: ReportData, exportType: 'excel' | 'pdf') => {
-    // This function is now called by handleValidateAndExport if validation succeeds
-    console.log(`Form Data Validated for ${exportType}:`, data);
-    // The actual export logic is now handled inside ExportTab, which receives the validated data.
-    // We don't need to do anything here, as the ExportTab will handle the IPC call.
+    // Now, call the appropriate export handler from the hook with the validated data
+    if (exportType === 'excel') {
+        handleExportExcel(data);
+    } else if (exportType === 'pdf') {
+        handleExportPDF(data);
+    }
   };
 
   const onError = (errors: any) => {

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useReportStore } from '@/store/useReportStore';
-import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
 import { FileSpreadsheet, FileText, Printer, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -11,80 +10,39 @@ import { useFormContext } from 'react-hook-form';
 import { ReportData } from '@/types/report';
 
 interface ExportTabProps {
-    onExport: (type: 'excel' | 'pdf') => void; // Now accepts the export type
+    onExport: (type: 'excel' | 'pdf') => void; // Triggers validation and subsequent export
 }
 
 const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
     const { report } = useReportStore();
     const { watch, setValue } = useFormContext<ReportData>();
-    const [exportStatus, setExportStatus] = useState<'Ready' | 'Exporting...' | 'Complete' | 'Error'>('Ready');
+    
+    // We no longer manage the export status here, as the IPC call is handled in Index.tsx
+    // We can use a local state to track if an export attempt is ongoing for UI feedback.
+    const [isExporting, setIsExporting] = useState(false);
     const [lastExportTime, setLastExportTime] = useState<string | null>(null);
 
-    const handleExport = async (type: 'excel' | 'pdf') => {
-        // 1. Trigger validation via the prop function. 
-        // If validation fails, the onError callback in Index.tsx handles the toast and tab switch.
-        // If validation succeeds, we proceed with the actual IPC call.
+    const handleExportClick = (type: 'excel' | 'pdf') => {
+        setIsExporting(true);
         
-        // Since RHF's handleSubmit is asynchronous and handles success/error internally, 
-        // we need a way to ensure the IPC call only happens AFTER successful validation.
-        // The current setup in Index.tsx handles validation and error reporting.
-        
-        // We will use a temporary status to manage the UI state during the IPC call.
-        
-        // First, trigger validation. If it fails, the parent handles it.
+        // Trigger validation in the parent component (Index.tsx)
+        // The parent's onSubmit callback will handle the actual IPC export call if validation passes.
         onExport(type);
-
-        // We assume if we reach here, the user has clicked the button. 
-        // We need to perform the IPC call only if validation passed.
-        // Since RHF validation is handled by the parent, we need to check if there are errors 
-        // or rely on the parent's success/failure mechanism.
         
-        // For simplicity and to ensure the UI reflects the IPC status, we will move the IPC logic here, 
-        // but only after the user has clicked the button. We rely on the user to fix errors if the toast appears.
-
-        setExportStatus('Exporting...');
+        // Since RHF handleSubmit is async, we can't reliably know success/failure here immediately.
+        // We rely on the toast messages from the parent's export handlers.
         
-        try {
-            const channel = type === 'excel' ? 'export-excel' : 'export-pdf';
-            
-            // Simulate the IPC call to the main process
-            const result = await ipcRenderer.invoke(channel, report);
-
-            if (result?.success) {
-                setExportStatus('Complete');
-                setLastExportTime(new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }));
-                toast.success(`${type.toUpperCase()} export successful!`);
-            } else {
-                setExportStatus('Ready');
-                toast.error(`${type.toUpperCase()} export failed or cancelled.`);
-            }
-        } catch (error) {
-            console.error(`Export Error (${type}):`, error);
-            setExportStatus('Error');
-            toast.error(`An error occurred during ${type} export.`);
-        } finally {
-            // Reset status after a short delay if successful
-            if (exportStatus === 'Complete') {
-                setTimeout(() => setExportStatus('Ready'), 3000);
-            }
-        }
+        // Simulate status update for UI feedback (this is a simplification)
+        setTimeout(() => {
+            setIsExporting(false);
+            setLastExportTime(new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }));
+        }, 1000); 
     };
 
     const handlePrint = () => {
-        if (window.electron) {
-            window.electron.send('export-pdf', report); // Use PDF channel for print simulation
-            toast.info("Opening Windows Print Dialog (Simulated).");
-        } else {
-            toast.info("Print functionality simulated.");
-        }
+        // Since printing is usually a direct action without file saving, we can keep it simple.
+        toast.info("Opening Windows Print Dialog (Simulated).");
     };
-
-    const statusColor = {
-        'Ready': 'text-green-600',
-        'Exporting...': 'text-orange-500',
-        'Complete': 'text-green-600',
-        'Error': 'text-red-600',
-    }[exportStatus];
 
     return (
         <div className="space-y-8 p-4">
@@ -93,19 +51,19 @@ const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
             {/* Export Buttons */}
             <div className="flex flex-wrap gap-4">
                 <Button 
-                    onClick={() => handleExport('excel')} 
+                    onClick={() => handleExportClick('excel')} 
                     size="lg" 
                     className="bg-[#003366] hover:bg-[#004488] text-white"
-                    disabled={exportStatus === 'Exporting...'}
+                    disabled={isExporting}
                 >
-                    {exportStatus === 'Exporting...' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
                     Export to Excel
                 </Button>
                 <Button 
-                    onClick={() => handleExport('pdf')} 
+                    onClick={() => handleExportClick('pdf')} 
                     size="lg" 
                     variant="outline"
-                    disabled={exportStatus === 'Exporting...'}
+                    disabled={isExporting}
                 >
                     <FileText className="mr-2 h-4 w-4" /> Export to PDF
                 </Button>
@@ -124,11 +82,11 @@ const ExportTab: React.FC<ExportTabProps> = ({ onExport }) => {
             <div className="space-y-2">
                 <h3 className="text-xl font-semibold text-[#003366]">Export Status</h3>
                 <p className="text-sm">
-                    Status: <span className={`font-semibold ${statusColor}`}>{exportStatus}</span>
+                    Status: <span className={`font-semibold ${isExporting ? 'text-orange-500' : 'text-green-600'}`}>{isExporting ? 'Exporting...' : 'Ready'}</span>
                 </p>
                 {lastExportTime && (
                     <p className="text-sm text-muted-foreground">
-                        Last exported: {report.date as string} {lastExportTime}
+                        Last export attempt: {report.date as string} {lastExportTime}
                     </p>
                 )}
             </div>

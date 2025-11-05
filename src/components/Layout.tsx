@@ -3,15 +3,15 @@ import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock } from '
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from './made-with-dyad';
 import { useReportStore } from '@/store/useReportStore';
-import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useReportActions } from '@/hooks/useReportActions'; // Import the new hook
 
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
-  onTabChange: (tabId: string) => void; // Added onTabChange
+  onTabChange: (tabId: string) => void;
 }
 
 const TABS = [
@@ -49,51 +49,15 @@ const SidebarNavigation = ({ activeTab, onSelectTab }: { activeTab: string, onSe
 );
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
-  const { report, lastAutoSave, newReport, autoSave } = useReportStore();
+  const { report, lastAutoSave } = useReportStore();
   const isMobile = useIsMobile();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleExportExcel = async () => {
-    if (!window.electron) {
-      toast.error("Electron IPC not available. Cannot export.");
-      return;
-    }
-    toast.loading("Preparing Excel export...");
-    try {
-      // Trigger the main process to handle file generation and save dialog
-      const result = await ipcRenderer.invoke('export-excel', report);
-      toast.dismiss();
-      if (result?.success) {
-        toast.success(`Export successful!`);
-      } else {
-        toast.error("Export failed or cancelled.");
-      }
-    } catch (error) {
-      toast.dismiss();
-      toast.error("Export failed due to an internal error.");
-      console.error("Export error:", error);
-    }
-  };
+  // Use the new hook, passing a callback to handle tab change on new report
+  const { handleNewReport, handleSaveDraft, handleOpenReport } = useReportActions(() => onTabChange('general'));
 
-  const handleSaveDraft = async () => {
-    await autoSave(); // Trigger IndexedDB persistence
-    if (window.electron) {
-      // Trigger the main process to save to JSON file
-      const result = await ipcRenderer.invoke('save-report', report);
-      if (result?.success) {
-        toast.success("Draft saved to Documents folder.");
-      } else {
-        toast.error("Failed to save draft to file system.");
-      }
-    } else {
-      toast.success("Draft saved locally (IndexedDB).");
-    }
-  };
-  
-  const handleNewReport = () => {
-    newReport();
-    onTabChange('general'); // Ensure we switch to general tab on new report
-  };
+  // Note: Export functions are now handled by ExportTab, which receives validated data.
+  // The buttons here are for general file management (New, Open, Save Draft).
 
   const QuickSummary = () => (
     <div className="p-4 border-t border-border mt-auto bg-sidebar-accent/50">
@@ -110,18 +74,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
       <Button onClick={handleNewReport} variant="outline" size="sm">
         <File className="h-4 w-4 mr-2" /> New
       </Button>
-      <Button variant="outline" size="sm">
+      <Button onClick={handleOpenReport} variant="outline" size="sm">
         <FolderOpen className="h-4 w-4 mr-2" /> Open
       </Button>
       <Button onClick={handleSaveDraft} variant="secondary" size="sm">
         <Save className="h-4 w-4 mr-2" /> Save Draft
       </Button>
-      <Button onClick={handleExportExcel} size="sm" className="bg-[#003366] hover:bg-[#004488] text-white">
-        <FileSpreadsheet className="h-4 w-4 mr-2" /> Export Excel
-      </Button>
-      <Button variant="outline" size="sm">
-        <File className="h-4 w-4 mr-2" /> Export PDF
-      </Button>
+      {/* Export buttons removed from Layout header, as they are now centralized in ExportTab 
+          and require form validation first. */}
       <span className="text-sm text-muted-foreground ml-4">Status &gt;&gt;</span>
     </div>
   );
