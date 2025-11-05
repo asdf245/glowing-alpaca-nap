@@ -33,6 +33,15 @@ const mergeCells = (ws: XLSX.WorkSheet, r1: number, c1: number, r2: number, c2: 
     ws['!merges'].push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
 };
 
+const CALIBRATION_EQUIPMENT_MAP = [
+    { key: 'gasDetector', label: 'Gas Detector' },
+    { key: 'chromatograph', label: 'Chromatograph' },
+    { key: 'h2s1', label: 'H2S-1' },
+    { key: 'h2s2', label: 'H2S-2' },
+    { key: 'h2s3', label: 'H2S-3' },
+    { key: 'calcimeter', label: 'Calcimeter' },
+];
+
 
 export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
@@ -227,7 +236,6 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   });
   
   // --- Gas Data (Table Header) ---
-  // Start Gas Data after Lithology, ensuring at least R39 if Lithology is empty
   currentRow = Math.max(currentRow, 39);
   const gasHeaderRow = currentRow;
   
@@ -263,13 +271,13 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   });
   
   // --- Operations Log (Table Header) ---
-  // Start Operations Log after Gas Data, ensuring at least R49 if Gas Data is short
   currentRow = Math.max(currentRow, 49);
+  const operationsHeaderRow = currentRow;
   
-  setCell(ws, currentRow, 0, "From");
-  setCell(ws, currentRow, 1, "To");
-  setCell(ws, currentRow, 2, "Duration");
-  setCell(ws, currentRow, 3, "Remark"); mergeCells(ws, currentRow, 3, currentRow, 10);
+  setCell(ws, operationsHeaderRow, 0, "From");
+  setCell(ws, operationsHeaderRow, 1, "To");
+  setCell(ws, operationsHeaderRow, 2, "Duration");
+  setCell(ws, operationsHeaderRow, 3, "Remark"); mergeCells(ws, operationsHeaderRow, 3, operationsHeaderRow, 10);
   currentRow++;
   
   (data.operationEntries as any[]).forEach(entry => {
@@ -280,6 +288,67 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
     setCell(ws, currentRow, 3, entry.remark); mergeCells(ws, currentRow, 3, currentRow, 10);
     currentRow++;
   });
+  
+  // --- Equipment Calibration (Table Header) ---
+  currentRow = currentRow + 2; // Add a gap
+  const calibrationHeaderRow = currentRow;
+  
+  setCell(ws, calibrationHeaderRow, 0, "Equipment Calibration"); mergeCells(ws, calibrationHeaderRow, 0, calibrationHeaderRow, 3);
+  currentRow++;
+  
+  setCell(ws, currentRow, 0, "Equipment");
+  setCell(ws, currentRow, 1, "Test Date");
+  setCell(ws, currentRow, 2, "Calibrated Date");
+  setCell(ws, currentRow, 3, "Result");
+  currentRow++;
+  
+  // Equipment Calibration Rows
+  if (data.includeCalibrationData) {
+      CALIBRATION_EQUIPMENT_MAP.forEach(item => {
+          const calData = data.equipmentCalibration[item.key as keyof typeof data.equipmentCalibration];
+          setCell(ws, currentRow, 0, item.label);
+          setCell(ws, currentRow, 1, calData?.testDate);
+          setCell(ws, currentRow, 2, calData?.calibratedDate);
+          setCell(ws, currentRow, 3, calData?.result);
+          currentRow++;
+      });
+  } else {
+      setCell(ws, currentRow, 0, "Calibration data excluded by user setting."); mergeCells(ws, currentRow, 0, currentRow, 3);
+      currentRow++;
+  }
+  
+  // --- Crew Roster ---
+  currentRow = currentRow + 2; // Add a gap
+  
+  setCell(ws, currentRow, 0, "Safety Meeting Attended:"); setCell(ws, currentRow, 1, data.safetyMeeting || 'N/A');
+  currentRow++;
+  
+  setCell(ws, currentRow, 0, "Crew Roster"); mergeCells(ws, currentRow, 0, currentRow, 3);
+  currentRow++;
+  
+  setCell(ws, currentRow, 0, "Day Crew"); mergeCells(ws, currentRow, 0, currentRow, 1);
+  setCell(ws, currentRow, 2, "Night Crew"); mergeCells(ws, currentRow, 2, currentRow, 3);
+  currentRow++;
+  
+  // Crew Rows
+  const maxCrew = Math.max(data.dayCrew.length, data.nightCrew.length);
+  for (let i = 0; i < maxCrew; i++) {
+      const day = data.dayCrew[i];
+      const night = data.nightCrew[i];
+      
+      setCell(ws, currentRow, 0, day?.number, 'n');
+      setCell(ws, currentRow, 1, day?.name);
+      setCell(ws, currentRow, 2, night?.number, 'n');
+      setCell(ws, currentRow, 3, night?.name);
+      currentRow++;
+  }
+  
+  // --- Final Signatures (Placeholder) ---
+  if (data.includeSignatures) {
+      currentRow = currentRow + 4;
+      setCell(ws, currentRow, 0, "Prepared By:"); mergeCells(ws, currentRow, 0, currentRow, 2);
+      setCell(ws, currentRow, 4, "Approved By:"); mergeCells(ws, currentRow, 4, currentRow, 6);
+  }
   
   // Set column widths (optional but good practice)
   ws['!cols'] = [
