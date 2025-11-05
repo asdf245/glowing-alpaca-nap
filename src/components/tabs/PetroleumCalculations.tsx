@@ -10,6 +10,7 @@ const DRILL_COLLAR_OD = 8; // inches (Standard assumption for calculation)
 const RHEOLOGY_CONSTANT = 100; // Simplified constant for APL calculation
 const FRACTURE_GRADIENT_ASSUMPTION = 0.8; // psi/ft (Simplified assumption for MAMW)
 const CASING_SHOE_DEPTH_FT = 10000; // ft (Simplified assumption for MAMW)
+const TRIPLEX_PUMP_CONSTANT = 0.000164; // Simplified constant for Triplex Pump Output (bbl/stroke)
 
 const PetroleumCalculations: React.FC = () => {
   const { watch, setValue } = useFormContext<ReportData>();
@@ -21,7 +22,7 @@ const PetroleumCalculations: React.FC = () => {
   const holeSize = watch('holeSize') || '8.5'; // Dh in inches
   const nozzle = watch('presentBit.nozzle') || '12-12-12'; // Nozzle sizes in 1/32"
   const tvd = watch('tvd') || 0; // TVD in m
-  const viscosity = watch('viscosity') || 0; // Viscosity in s/qt (Marsh Funnel) - Note: PV/YP are better for APL
+  const viscosity = watch('viscosity') || 0; // Viscosity in s/qt (Marsh Funnel)
   const pv = watch('pv') || 0; // Plastic Viscosity in cp
   const yp = watch('yp') || 0; // Yield Point in lbf/100ft²
 
@@ -55,6 +56,7 @@ const PetroleumCalculations: React.FC = () => {
   
   // Conversion factors
   const TVD_FT = tvd * 3.28084; // TVD in feet
+  const TVD_M = tvd; // TVD in meters
   const MW_PPG = mudWeight / 7.48; // Mud Weight from pcf to ppg (assuming pcf is density in lb/ft^3)
 
   // --- Calculations ---
@@ -91,26 +93,15 @@ const PetroleumCalculations: React.FC = () => {
   }
 
   // 5. Annular Pressure Loss (APL) - PSI
-  // Simplified Bingham Plastic model approximation for APL in the annulus (PSI)
-  // APL ≈ (PV * Q * L) / (Dh^2 - Dp^2) + (YP * L) / (Dh - Dp)
-  // Using a simplified factor based on PV, YP, and flow rate (Q)
   let annularPressureLoss = 0;
   if (pv > 0 && yp > 0 && flowRate > 0 && annularAreaFactor > 0) {
     // Simplified APL calculation (L is length, assumed constant or proportional to TVD)
-    // APL (PSI) = (MW * PV * Q * TVD_FT) / RHEOLOGY_CONSTANT
-    annularPressureLoss = (MW_PPG * pv * flowRate * TVD_FT) / 1000000; // Highly simplified factor
+    annularPressureLoss = (MW_PPG * pv * flowRate * TVD_FT) / 1000000; 
   }
 
   // 6. Equivalent Circulating Density (ECD) - pcf
   let ecd = mudWeight; 
   if (TVD_FT > 0 && mudWeight > 0) {
-    // ECD (pcf) = MW (pcf) + (APL (PSI) / (0.052 * TVD (ft))) * 7.48 (conversion factor from ppg to pcf)
-    // Note: We use MW_PPG for the calculation constant 0.052, then convert back to pcf if needed.
-    // Let's stick to pcf for MW and use the appropriate constant (0.00052 * TVD_M for kPa, or 0.052 * TVD_FT for psi/ppg)
-    
-    // If MW is in pcf (lb/ft^3), the constant is 1/144 * TVD_FT for psi/pcf
-    // Let's use the standard oilfield units (ppg and psi/ft) and convert MW to ppg first.
-    
     if (MW_PPG > 0 && annularPressureLoss > 0) {
         const ECD_PPG = MW_PPG + (annularPressureLoss / (0.052 * TVD_FT));
         ecd = ECD_PPG * 7.48; // Convert back to pcf
@@ -118,7 +109,6 @@ const PetroleumCalculations: React.FC = () => {
   }
   
   // 7. Equivalent Mud Weight (EMW) based on SPP - pcf
-  // EMW (ppg) = SPP / (0.052 * TVD_FT)
   let emw = 0;
   if (spp > 0 && TVD_FT > 0) {
     const EMW_PPG = spp / (0.052 * TVD_FT);
@@ -126,8 +116,6 @@ const PetroleumCalculations: React.FC = () => {
   }
 
   // 8. Maximum Allowable Mud Weight (MAMW) - pcf
-  // MAMW (ppg) = FG / 0.052
-  // Assuming FG is constant at casing shoe depth (CASING_SHOE_DEPTH_FT)
   let mamw = 0;
   if (FRACTURE_GRADIENT_ASSUMPTION > 0) {
     const MAMW_PPG = FRACTURE_GRADIENT_ASSUMPTION / 0.052;
@@ -135,12 +123,41 @@ const PetroleumCalculations: React.FC = () => {
   }
 
   // 9. Critical Flow Rate (Qc) - GPM
-  // Simplified critical flow rate for laminar to turbulent transition (based on Reynolds number)
-  // Qc (GPM) = 1000 * (PV / MW_PPG) * (Dh - Dp) / (Dp) (Highly simplified)
   let criticalFlowRate = 0;
   if (pv > 0 && MW_PPG > 0 && holeDiameter > DRILL_PIPE_OD) {
     criticalFlowRate = 1000 * (pv / MW_PPG) * (holeDiameter - DRILL_PIPE_OD) / DRILL_PIPE_OD;
   }
+  
+  // --- New Calculations ---
+
+  // 10. Hydrostatic Pressure (HP) - PSI
+  // HP (PSI) = 0.052 * MW (ppg) * TVD (ft)
+  let hydrostaticPressure = 0;
+  if (MW_PPG > 0 && TVD_FT > 0) {
+    hydrostaticPressure = 0.052 * MW_PPG * TVD_FT;
+  }
+
+  // 11. Pump Output (PO) - bbl/stroke
+  // Simplified calculation assuming a triplex pump with fixed liner size/stroke length
+  let pumpOutput = TRIPLEX_PUMP_CONSTANT; 
+
+  // 12. Annular Capacity (AC) - bbl/ft
+  // AC (bbl/ft) = (Dh^2 - Dp^2) / 1029.4
+  let annularCapacity = 0;
+  if (annularAreaFactor > 0) {
+    annularCapacity = annularAreaFactor / 1029.4;
+  }
+
+  // 13. Volume in Hole (Vih) - bbl
+  // Vih (bbl) = AC (bbl/ft) * TVD (ft)
+  let volumeInHole = 0;
+  if (annularCapacity > 0 && TVD_FT > 0) {
+    volumeInHole = annularCapacity * TVD_FT;
+  }
+  
+  // 14. Trip Margin (TM) - pcf
+  // Trip Margin (pcf) = ECD (pcf) - MW (pcf)
+  let tripMargin = ecd - mudWeight;
 
 
   // Update the form context with calculated values
@@ -150,11 +167,6 @@ const PetroleumCalculations: React.FC = () => {
     setValue('bitHhp', parseFloat(bitHhp.toFixed(2)));
     setValue('hsi', parseFloat(hsi.toFixed(2)));
     setValue('ecd', parseFloat(ecd.toFixed(2)));
-    // New fields (need to ensure they exist in ReportData if we want to save them)
-    // Since they are only displayed here, we don't need to save them to ReportData unless requested.
-    // For simplicity and export consistency, I will assume they are saved to the ReportData object 
-    // if they are needed for export, even if they weren't explicitly added to the Zod schema yet.
-    // Since I cannot modify the Zod schema right now, I will only display them.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp]);
 
@@ -208,6 +220,15 @@ const PetroleumCalculations: React.FC = () => {
       <h3 className="text-xl font-semibold text-[#003366]">Pressure & Density Management</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <FormField
+          label="Hydrostatic Pressure (HP)"
+          unit="PSI"
+          type="number"
+          value={parseFloat(hydrostaticPressure.toFixed(2))}
+          onChange={() => {}}
+          isCalculated
+          readOnly
+        />
+        <FormField
           label="Annular Pressure Loss (APL)"
           unit="PSI"
           type="number"
@@ -244,6 +265,48 @@ const PetroleumCalculations: React.FC = () => {
           readOnly
         />
         <FormField
+          label="Trip Margin (TM)"
+          unit="pcf"
+          type="number"
+          value={parseFloat(tripMargin.toFixed(2))}
+          onChange={() => {}}
+          isCalculated
+          readOnly
+        />
+      </div>
+
+      <Separator />
+
+      <h3 className="text-xl font-semibold text-[#003366]">Volume & Flow Parameters</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <FormField
+          label="Pump Output (PO)"
+          unit="bbl/stroke"
+          type="number"
+          value={parseFloat(pumpOutput.toFixed(5))}
+          onChange={() => {}}
+          isCalculated
+          readOnly
+        />
+        <FormField
+          label="Annular Capacity (AC)"
+          unit="bbl/ft"
+          type="number"
+          value={parseFloat(annularCapacity.toFixed(5))}
+          onChange={() => {}}
+          isCalculated
+          readOnly
+        />
+        <FormField
+          label="Volume in Hole (Vih)"
+          unit="bbl"
+          type="number"
+          value={parseFloat(volumeInHole.toFixed(2))}
+          onChange={() => {}}
+          isCalculated
+          readOnly
+        />
+        <FormField
           label="Critical Flow Rate (Qc)"
           unit="GPM"
           type="number"
@@ -268,7 +331,7 @@ const PetroleumCalculations: React.FC = () => {
         <p>Yield Point (YP): <span className="font-medium text-foreground">{yp} lbf/100ft²</span></p>
       </div>
       <p className="text-xs text-muted-foreground mt-4">
-        Note: Calculations use simplified models and assumed constants (e.g., standard pipe sizes, fixed fracture gradient).
+        Note: Calculations use simplified models and assumed constants (e.g., standard pipe sizes, fixed fracture gradient, triplex pump constant).
       </p>
     </div>
   );
