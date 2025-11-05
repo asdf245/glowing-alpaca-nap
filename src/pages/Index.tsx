@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { File, FolderOpen, Loader2 } from 'lucide-react';
+import { File, FolderOpen } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { useReportActions } from '@/hooks/useReportActions';
@@ -14,7 +14,7 @@ const Index: React.FC = () => {
   const { newReport } = useReportStore();
   
   // Use a simplified version of useReportActions just for the New/Open handlers
-  const { handleNewReport, handleOpenReport } = useReportActions(() => navigate('/report'));
+  const { handleOpenReport } = useReportActions(() => navigate('/report'));
 
   const handleStartNewReport = () => {
     newReport(); // Reset store state

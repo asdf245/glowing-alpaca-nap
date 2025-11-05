@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useReportStore } from '@/store/useReportStore';
 import { ReportRecord } from '@/db/db';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, FileText, Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
