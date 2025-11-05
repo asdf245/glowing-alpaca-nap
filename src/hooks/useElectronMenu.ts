@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useReportActions } from './useReportActions';
 import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
@@ -22,33 +22,38 @@ export const useElectronMenu = (onNewReport: () => void) => {
   } = useReportActions(onNewReport, trigger);
 
   // Define the error handler for exports
-  const onError = (errors: any) => {
+  const onError = useCallback((errors: any) => {
     console.error("Validation Errors:", errors);
     toast.error("Please fix the errors in the form before exporting.");
-  };
+  }, []);
+
+  // Stabilize handlers using useCallback
+  const handleNew = useCallback(() => handleNewReport(), [handleNewReport]);
+  const handleOpen = useCallback(() => handleOpenReport(), [handleOpenReport]);
+  const handleSave = useCallback(() => handleSaveDraft(), [handleSaveDraft]);
+  
+  // Export handlers require validation and data retrieval from RHF
+  const handleExportExcelMenu = useCallback(() => {
+      handleSubmit((data) => handleExportExcel(data), onError)();
+  }, [handleSubmit, handleExportExcel, onError]);
+  
+  const handleExportPDFMenu = useCallback(() => {
+      handleSubmit((data) => handleExportPDF(data), onError)();
+  }, [handleSubmit, handleExportPDF, onError]);
+  
+  // View Actions
+  const handleToggleDarkMode = useCallback(() => {
+      // Simple dark mode toggle logic (assuming Tailwind/shadcn setup)
+      document.documentElement.classList.toggle('dark');
+      toast.info(`Dark mode toggled.`);
+  }, []);
+
 
   useEffect(() => {
     if (!window.electron) {
       console.warn("Not running in Electron environment. Menu commands disabled.");
       return;
     }
-
-    // --- File Actions ---
-    
-    const handleNew = () => handleNewReport();
-    const handleOpen = () => handleOpenReport();
-    const handleSave = () => handleSaveDraft();
-    
-    // Export handlers require validation and data retrieval from RHF
-    const handleExportExcelMenu = handleSubmit((data) => handleExportExcel(data), onError);
-    const handleExportPDFMenu = handleSubmit((data) => handleExportPDF(data), onError);
-    
-    // --- View Actions ---
-    const handleToggleDarkMode = () => {
-        // Simple dark mode toggle logic (assuming Tailwind/shadcn setup)
-        document.documentElement.classList.toggle('dark');
-        toast.info(`Dark mode toggled.`);
-    };
 
     // Register listeners
     ipcRenderer.on('menu-new-report', handleNew);
@@ -65,5 +70,5 @@ export const useElectronMenu = (onNewReport: () => void) => {
       // For simplicity in this environment, we rely on the component lifecycle.
       // In a production Electron app, you would use ipcRenderer.removeListener.
     };
-  }, [handleNewReport, handleSaveDraft, handleOpenReport, handleExportExcel, handleExportPDF, handleSubmit, onError]);
+  }, [handleNew, handleOpen, handleSave, handleExportExcelMenu, handleExportPDFMenu, handleToggleDarkMode]);
 };
