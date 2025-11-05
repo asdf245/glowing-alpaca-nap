@@ -23,12 +23,52 @@ async function ensureDirectories() {
 // --- IPC Handlers ---
 function setupIpc(mainWindow: BrowserWindow) {
   ipcMain.handle('save-report', async (event, data) => {
-    // Logic to save data to JSON file in USER_DOCUMENTS
-    console.log('Saving report draft to:', USER_DOCUMENTS);
-    // Placeholder implementation
-    return { success: true, path: path.join(USER_DOCUMENTS, 'mudlog-draft.json') };
+    const defaultFilename = `Draft-Mud-Logging-Report-${data.wellName || 'Untitled'}-${data.date || 'N/A'}.json`;
+    
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Save Report Draft',
+      defaultPath: path.join(USER_DOCUMENTS, defaultFilename),
+      filters: [{ name: 'JSON Report File', extensions: ['json'] }],
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, message: 'Save cancelled' };
+    }
+
+    try {
+      await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+      console.log('Saved JSON draft successfully at:', filePath);
+      return { success: true, path: filePath };
+    } catch (error) {
+      console.error('Failed to write JSON file:', error);
+      return { success: false, message: `Failed to write file: ${error}` };
+    }
   });
 
+  ipcMain.handle('load-report', async (event) => {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Open Report File',
+      defaultPath: USER_DOCUMENTS,
+      properties: ['openFile'],
+      filters: [{ name: 'JSON Report File', extensions: ['json'] }],
+    });
+
+    if (canceled || filePaths.length === 0) {
+      return { success: false, message: 'Open cancelled' };
+    }
+
+    const filePath = filePaths[0];
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const data = JSON.parse(content);
+      console.log('Loaded JSON report successfully from:', filePath);
+      return { success: true, data: data, path: filePath };
+    } catch (error) {
+      console.error('Failed to read or parse JSON file:', error);
+      return { success: false, message: `Failed to read file: ${error}` };
+    }
+  });
+  
   ipcMain.handle('export-excel', async (event, { data: base64Data, wellName, date }) => {
     // 1. Convert Base64 data back to a Buffer
     const excelBuffer = Buffer.from(base64Data, 'base64');

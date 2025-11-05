@@ -1,8 +1,9 @@
 import { useReportStore } from '@/store/useReportStore';
 import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
-import { ReportData } from '@/types/report';
-import { generateNidcExcelBase64 } from '@/utils/excelExport'; // Import the new function
+import { ReportData, ReportSchema } from '@/types/report';
+import { generateNidcExcelBase64 } from '@/utils/excelExport';
+import { z } from 'zod'; // Import Zod for schema validation
 
 export const useReportActions = (onNewReport: () => void, triggerValidation?: () => Promise<boolean>) => {
   const { report, autoSave, newReport } = useReportStore();
@@ -68,7 +69,8 @@ export const useReportActions = (onNewReport: () => void, triggerValidation?: ()
         isValid = await triggerValidation();
     }
     
-    await autoSave(); // Trigger IndexedDB persistence regardless of validation status
+    // 1. Always trigger IndexedDB persistence (autoSave handles this)
+    await autoSave(); 
 
     if (!isValid) {
         toast.warning("Draft saved locally, but please fix validation errors.");
@@ -76,15 +78,61 @@ export const useReportActions = (onNewReport: () => void, triggerValidation?: ()
         toast.info("Draft saved locally.");
     }
     
+    // 2. Trigger file system save via IPC
     if (window.electron) {
-      // Trigger the main process to save to JSON file
+      const loadingToastId = toast.loading("Saving draft to file system...");
+      // Pass the current report data for saving
       const result = await ipcRenderer.invoke('save-report', report);
+      toast.dismiss(loadingToastId);
+      
       if (result?.success) {
-        // Only show success toast for file save if validation passed or if we only care about file system success
-        toast.success("Draft saved to Documents folder.");
+        toast.success(`Draft saved to file: ${result.path}`);
       } else {
         toast.error("Failed to save draft to file system.");
       }
+    }
+  };
+  
+  const handleOpenReport = async () => {
+    if (!window.electron) {
+      toast.error("Electron IPC not available. Cannot open file.");
+      return;
+    }
+    
+    const loadingToastId = toast.loading("Waiting for file selection...");
+    
+    try {
+        // Invoke IPC to open file dialog and read JSON content
+        const result = await ipcRenderer.invoke('load-report');
+        toast.dismiss(loadingToastId);
+
+        if (result?.success && result.data) {
+            // 1. Validate loaded data against Zod schema
+            const validation = ReportSchema.safeParse(result.data);
+            
+            if (validation.success) {
+                // 2. Update Zustand store with loaded data
+                // We use setReport to update the data, and newReport to clear the DB ID, 
+                // treating the file load as a new, unsaved draft in the DB.
+                useReportStore.getState().setReport(validation.data);
+                useReportStore.getState().newReport(); 
+                
+                toast.success(`Report loaded successfully from file: ${result.path}`);
+                onNewReport(); // Navigate to /report
+            } else {
+                console.error("Loaded data failed schema validation:", validation.error);
+                toast.error("Loaded file is corrupted or incompatible with the current report format.");
+            }
+        } else if (!result?.success) {
+            // Error or cancellation handled by main process
+            if (result?.message !== 'Open cancelled') {
+                toast.error(`Failed to open report: ${result?.message || 'Unknown error'}`);
+            }
+        }
+    } catch (error) {
+        toast.dismiss(loadingToastId);
+        console.error("IPC Load error:", error);
+        toast.error("An error occurred while loading the file.");
     }
   };
   
@@ -98,8 +146,7 @@ export const useReportActions = (onNewReport: () => void, triggerValidation?: ()
     handleExport,
     handleSaveDraft,
     handleNewReport,
-    // Placeholder for future load/open functionality
-    handleOpenReport: () => toast.info("Open Report functionality coming soon."),
+    handleOpenReport,
     handleExportPDF: (data: ReportData) => handleExport('pdf', data),
     handleExportExcel: (data: ReportData) => handleExport('excel', data),
   };
