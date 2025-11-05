@@ -8,8 +8,8 @@ import { DynamicTable } from '@/components/DynamicTable';
 // Constants
 const CONST_CAPACITY = 1029.4; // 1029.4 = 4 * 144 / (PI * 5.6146) -> (in^2 / 1029.4) = bbl/ft
 const FT_PER_M = 3.28084;
-const TRIPLEX_PUMP_CONSTANT = 0.000164; // Simplified constant for Triplex Pump Output (bbl/stroke)
 const FRACTURE_GRADIENT_ASSUMPTION = 0.8; // psi/ft (Simplified assumption for MAMW)
+const PUMP_EFFICIENCY = 0.95; // Assume 95% efficiency for triplex pump
 
 // --- Dynamic Table Definitions ---
 
@@ -57,6 +57,8 @@ const PetroleumCalculations: React.FC = () => {
   const yp = watch('yp') || 0; // Yield Point in lbf/100ft²
   const rheology600 = watch('rheology600') || 0;
   const rheology300 = watch('rheology300') || 0;
+  const linerSizeIn = watch('linerSizeIn') || 6.5; // Liner Size (in)
+  const strokeLengthIn = watch('strokeLengthIn') || 12; // Stroke Length (in)
   
   const stringData = watch('stringData') || [];
   const wellProfile = watch('wellProfile') || [];
@@ -122,14 +124,19 @@ const PetroleumCalculations: React.FC = () => {
   });
 
   // 3. Annulus Volume (V_Annulus)
-  // Simplified: Total Hole Volume - Steel Volume (Volume of mud in the annulus)
   const annulusVolume = totalHoleVolume - steelVolume;
 
   // 4. Displace Volume (V_Displace)
-  // Total volume of the string (steel + internal capacity)
   const displaceVolume = capacityVolume + steelVolume; 
 
-  // 5. Lag Time (Time for mud to travel from bit to surface)
+  // 5. Pump Output (Triplex Pump, bbl/stroke)
+  // Formula: Pump Output (bbl/stroke) = 0.000243 * Liner Size^2 * Stroke Length * Efficiency
+  let pumpOutput = 0;
+  if (linerSizeIn > 0 && strokeLengthIn > 0) {
+      pumpOutput = 0.000243 * (linerSizeIn * linerSizeIn) * strokeLengthIn * PUMP_EFFICIENCY;
+  }
+
+  // 6. Lag Time (Time for mud to travel from bit to surface)
   const flowRateBBL_min = flowRate / 42; // GPM to BBL/min (1 bbl = 42 gal)
   let lagTimeBbl = annulusVolume;
   let lagTimeMin = 0;
@@ -137,8 +144,7 @@ const PetroleumCalculations: React.FC = () => {
       lagTimeMin = annulusVolume / flowRateBBL_min;
   }
 
-  // 6. Complete Circulation Strokes (Strokes)
-  const pumpOutput = TRIPLEX_PUMP_CONSTANT; // bbl/stroke
+  // 7. Complete Circulation Strokes (Strokes)
   let completeCirculationStrokes = 0;
   if (pumpOutput > 0) {
       const totalCirculationVolume = capacityVolume + annulusVolume;
@@ -151,7 +157,6 @@ const PetroleumCalculations: React.FC = () => {
   const nozzleArea = parseNozzleArea(nozzle as string); // Total nozzle area in sq. inches
 
   // 1. Annular Velocity (AV) - m/min (Simplified, using average OD of string and average hole ID)
-  // We use the hole size from General Tab for simplified AV calculation if detailed string data is missing.
   const avgPipeOD = stringData.length > 0 ? stringData.reduce((sum, s) => sum + (s.odIn || 0), 0) / stringData.length : 3.5;
   const annularAreaFactor = (holeDiameter * holeDiameter) - (avgPipeOD * avgPipeOD);
   let annVelocity = 0;
@@ -233,7 +238,7 @@ const PetroleumCalculations: React.FC = () => {
     setValue('annularPressureLoss', parseFloat(annularPressureLoss.toFixed(2)));
     setValue('emw', parseFloat(emw.toFixed(2)));
     setValue('tripMargin', parseFloat(tripMargin.toFixed(2)));
-    setValue('mamw', parseFloat(mamw.toFixed(2))); // Fix: Set MAMW value
+    setValue('mamw', parseFloat(mamw.toFixed(2)));
     
     // New calculated fields
     setValue('totalHoleVolume', parseFloat(totalHoleVolume.toFixed(2)));
@@ -246,7 +251,7 @@ const PetroleumCalculations: React.FC = () => {
     setValue('completeCirculationStrokes', Math.round(completeCirculationStrokes));
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp, stringData, wellProfile]);
+  }, [flowRate, mudWeight, spp, holeSize, nozzle, tvd, pv, yp, stringData, wellProfile, linerSizeIn, strokeLengthIn]);
 
 
   return (
@@ -277,8 +282,22 @@ const PetroleumCalculations: React.FC = () => {
       <Separator />
       
       {/* Rheology Inputs for Power Law Model (n, k) */}
-      <h3 className="text-xl font-semibold text-[#003366]">Rheology Inputs (For Pressure Loss Modeling)</h3>
+      <h3 className="text-xl font-semibold text-[#003366]">Pump & Rheology Inputs</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <FormField
+          label="Liner Size"
+          unit="in"
+          type="number"
+          value={linerSizeIn}
+          onChange={(val) => setValue('linerSizeIn', val as number)}
+        />
+        <FormField
+          label="Stroke Length"
+          unit="in"
+          type="number"
+          value={strokeLengthIn}
+          onChange={(val) => setValue('strokeLengthIn', val as number)}
+        />
         <FormField
           label="Rheology @ 600 RPM"
           unit="°"
@@ -293,7 +312,6 @@ const PetroleumCalculations: React.FC = () => {
           value={rheology300}
           onChange={(val) => setValue('rheology300', val as number)}
         />
-        {/* Power Law Index (n) and Consistency Index (k) can be calculated here if needed */}
       </div>
 
       <Separator />
@@ -482,6 +500,8 @@ const PetroleumCalculations: React.FC = () => {
         <p>True Vertical Depth (TVD): <span className="font-medium text-foreground">{tvd} m</span></p>
         <p>Plastic Viscosity (PV): <span className="font-medium text-foreground">{pv} cp</span></p>
         <p>Yield Point (YP): <span className="font-medium text-foreground">{yp} lbf/100ft²</span></p>
+        <p>Liner Size: <span className="font-medium text-foreground">{linerSizeIn} in</span></p>
+        <p>Stroke Length: <span className="font-medium text-foreground">{strokeLengthIn} in</span></p>
       </div>
       <p className="text-xs text-muted-foreground mt-4">
         Note: Hydraulic calculations are simplified and use average string/hole dimensions. Accurate pressure loss modeling requires the Power Law Index (n) and Consistency Index (k) which can be derived from the 600/300 RPM readings.

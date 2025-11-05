@@ -189,6 +189,8 @@ export const ReportSchema = z.object({
   wellProfile: z.array(WellProfileEntrySchema).default([]),
   rheology600: z.number().min(0).optional(),
   rheology300: z.number().min(0).optional(),
+  linerSizeIn: z.number().min(0).optional(), // New: Liner Size (in)
+  strokeLengthIn: z.number().min(0).optional(), // New: Stroke Length (in)
   
   // Calculated Volume/Time Data (New)
   totalHoleVolume: z.number().optional(),
@@ -278,4 +280,6 @@ export const initialReportData: ReportData = {
   ],
   rheology600: 60,
   rheology300: 30,
+  linerSizeIn: 6.5, // Sample data
+  strokeLengthIn: 12, // Sample data
 };
