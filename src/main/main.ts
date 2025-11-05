@@ -29,9 +29,11 @@ function setupIpc(mainWindow: BrowserWindow) {
     return { success: true, path: path.join(USER_DOCUMENTS, 'mudlog-draft.json') };
   });
 
-  ipcMain.handle('export-excel', async (event, data) => {
-    // In a real app, we would generate the XLSX buffer here using SheetJS
-    const defaultFilename = `Daily-Mud-Logging-Report-${data.wellName || 'Untitled'}-${data.date || 'N/A'}.xls`;
+  ipcMain.handle('export-excel', async (event, { data: base64Data, wellName, date }) => {
+    // 1. Convert Base64 data back to a Buffer
+    const excelBuffer = Buffer.from(base64Data, 'base64');
+    
+    const defaultFilename = `Daily-Mud-Logging-Report-${wellName || 'Untitled'}-${date || 'N/A'}.xls`;
     
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: 'Export Report to Excel',
@@ -43,9 +45,15 @@ function setupIpc(mainWindow: BrowserWindow) {
       return { success: false, message: 'Export cancelled' };
     }
 
-    // Simulate file write success
-    console.log('Generating Excel file at:', filePath);
-    return { success: true, path: filePath };
+    try {
+      // 2. Write the buffer to the selected file path
+      await fs.writeFile(filePath, excelBuffer);
+      console.log('Generated Excel file successfully at:', filePath);
+      return { success: true, path: filePath };
+    } catch (error) {
+      console.error('Failed to write Excel file:', error);
+      return { success: false, message: `Failed to write file: ${error}` };
+    }
   });
   
   // ... other IPC handlers (load-report, export-pdf, etc.)

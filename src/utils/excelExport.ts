@@ -42,8 +42,10 @@ const CALIBRATION_EQUIPMENT_MAP = [
     { key: 'calcimeter', label: 'Calcimeter' },
 ];
 
-
-export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
+/**
+ * Generates the Excel workbook and returns it as a Base64 encoded string.
+ */
+export function generateNidcExcelBase64(data: ReportData): string {
   const wb = XLSX.utils.book_new();
   const ws: XLSX.WorkSheet = {};
 
@@ -399,5 +401,10 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Data_Entry");
-  return wb;
+  
+  // Convert workbook to binary string
+  const wbout = XLSX.write(wb, { bookType: 'xls', type: 'binary' });
+
+  // Convert binary string to Base64 for IPC transfer
+  return Buffer.from(wbout, 'binary').toString('base64');
 }
