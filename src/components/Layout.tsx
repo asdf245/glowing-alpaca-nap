@@ -3,7 +3,6 @@ import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock, Calcula
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from './made-with-dyad';
 import { useReportStore } from '@/store/useReportStore';
-import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReportActions } from '@/hooks/useReportActions'; // Import the new hook

@@ -233,6 +233,7 @@ const PetroleumCalculations: React.FC = () => {
     setValue('annularPressureLoss', parseFloat(annularPressureLoss.toFixed(2)));
     setValue('emw', parseFloat(emw.toFixed(2)));
     setValue('tripMargin', parseFloat(tripMargin.toFixed(2)));
+    setValue('mamw', parseFloat(mamw.toFixed(2))); // Fix: Set MAMW value
     
     // New calculated fields
     setValue('totalHoleVolume', parseFloat(totalHoleVolume.toFixed(2)));

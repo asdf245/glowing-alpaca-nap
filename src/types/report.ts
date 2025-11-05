@@ -142,6 +142,7 @@ export const ReportSchema = z.object({
   annularPressureLoss: z.number().optional(), // Added
   emw: z.number().optional(), // Added
   tripMargin: z.number().optional(), // Added
+  mamw: z.number().optional(), // Added MAMW
   
   mudWeight: z.number().min(0, "Mud Weight is required"),
   viscosity: z.number().min(0, "Viscosity is required"),
