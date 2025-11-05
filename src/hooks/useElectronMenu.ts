@@ -2,15 +2,18 @@ import { useEffect, useCallback } from 'react';
 import { useReportActions } from './useReportActions';
 import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
-import { useFormContext } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import { ReportData } from '@/types/report';
 
 /**
  * Hook to listen for Electron menu commands and execute corresponding actions.
- * This hook should be called within the ReportForm component where RHF context is available.
+ * This hook is called within the ReportForm component after RHF initialization.
  */
-export const useElectronMenu = (onNewReport: () => void) => {
-  const { trigger, handleSubmit } = useFormContext<ReportData>();
+export const useElectronMenu = (
+  onNewReport: () => void,
+  methods: UseFormReturn<ReportData>
+) => {
+  const { trigger, handleSubmit } = methods;
   
   // Get report actions, passing the RHF trigger for validation
   const { 

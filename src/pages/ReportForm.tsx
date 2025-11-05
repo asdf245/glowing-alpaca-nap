@@ -52,11 +52,11 @@ const ReportForm = () => {
     trigger
   );
   
-  // Integrate Electron Menu Hook
+  // Integrate Electron Menu Hook, passing RHF methods
   useElectronMenu(() => {
     setActiveTab('general');
     navigate('/report');
-  });
+  }, methods); // <-- Pass methods here
 
   // Effect 0: Load report if ID is present in URL
   useEffect(() => {
