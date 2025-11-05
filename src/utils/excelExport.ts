@@ -139,7 +139,7 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 7, "Hours (hr)"); setCell(ws, currentRow, 8, hours, 'n');
   setCell(ws, currentRow, 9, "AVG. ROP (m/hr.)"); setCell(ws, currentRow, 10, avgRop, 'n');
 
-  // --- Rows 17-18: Hydraulic Data (Now calculated) ---
+  // --- Rows 17-18: Hydraulic Data (Calculated) ---
   currentRow = 17;
   setCell(ws, currentRow, 0, "Hydraulic Data (Calculated)"); mergeCells(ws, currentRow, 0, currentRow, 0);
   setCell(ws, currentRow, 1, "Ann Velocity (m/min)");
@@ -153,7 +153,7 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 3, data.bitHhp as number, 'n');
   setCell(ws, currentRow, 4, data.hsi as number, 'n');
   setCell(ws, currentRow, 5, data.ecd as number, 'n');
-
+  
   // --- Rows 19-21: Mud Data ---
   currentRow = 19;
   setCell(ws, currentRow, 0, "Mud Weight (pcf)"); setCell(ws, currentRow, 1, data.mudWeight as number, 'n');
@@ -165,6 +165,16 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 12, "CL (gr/l)"); setCell(ws, currentRow, 13, data.cl as number, 'n');
   setCell(ws, currentRow, 14, "PH"); setCell(ws, currentRow, 15, data.ph as number, 'n');
   
+  // --- Rows 22-24: Volume and Circulation Data (New Section) ---
+  currentRow = 22;
+  setCell(ws, currentRow, 0, "Volume & Circulation Data"); mergeCells(ws, currentRow, 0, currentRow, 0);
+  setCell(ws, currentRow, 1, "Total Hole Volume (bbl)"); setCell(ws, currentRow, 2, data.totalHoleVolume as number, 'n');
+  setCell(ws, currentRow, 3, "Annulus Volume (bbl)"); setCell(ws, currentRow, 4, data.annulusVolume as number, 'n');
+  setCell(ws, currentRow, 5, "Capacity Volume (bbl)"); setCell(ws, currentRow, 6, data.capacityVolume as number, 'n');
+  setCell(ws, currentRow, 7, "Steel Volume (bbl)"); setCell(ws, currentRow, 8, data.steelVolume as number, 'n');
+  setCell(ws, currentRow, 9, "Lag Time (min)"); setCell(ws, currentRow, 10, data.lagTimeMin as number, 'n');
+  setCell(ws, currentRow, 11, "Circulation Strokes"); setCell(ws, currentRow, 12, data.completeCirculationStrokes as number, 'n');
+
   // --- Rows 29-30: Drilling Parameters (WOB, SPP, etc.) ---
   currentRow = 29;
   setCell(ws, currentRow, 0, "WOB (Klbf)"); setCell(ws, currentRow, 1, data.wob as number, 'n');

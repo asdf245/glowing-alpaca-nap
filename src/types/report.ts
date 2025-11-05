@@ -42,6 +42,25 @@ const OperationEntrySchema = z.object({
   remark: z.string().max(500).optional(),
 });
 
+const StringDataEntrySchema = z.object({
+  id: z.string(),
+  type: z.string().min(1, "Type is required"),
+  idIn: z.number().min(0).optional(), // ID (in)
+  odIn: z.number().min(0).optional(), // OD (in)
+  lbFt: z.number().min(0).optional(), // lb/ft
+  lengthM: z.number().min(0).optional(), // Length (m)
+});
+
+const WellProfileEntrySchema = z.object({
+  id: z.string(),
+  type: z.string().min(1, "Type is required"), // e.g., LINER 7", OPEN HOLE 5.875"
+  idIn: z.number().min(0).optional(), // ID (in)
+  topM: z.number().min(0).optional(), // TOP (m)
+  bottomM: z.number().min(0).optional(), // BOTTOM (m)
+  lengthM: z.number().optional(), // Calculated: bottomM - topM
+});
+
+
 // --- Main Report Schema ---
 
 export const ReportSchema = z.object({
@@ -112,11 +131,18 @@ export const ReportSchema = z.object({
   flowRate: z.number().min(0).optional(),
   rpmTurb: z.number().min(0).optional(),
   torque: z.number().min(0).optional(),
+  
+  // Calculated Hydraulic Data (Inputs from Drilling Tab)
   annVelocity: z.number().min(0).optional(),
   jetVelocity: z.number().min(0).optional(),
   bitHhp: z.number().min(0).optional(),
   hsi: z.number().min(0).optional(),
   ecd: z.number().min(0).optional(),
+  hydrostaticPressure: z.number().optional(), // Added
+  annularPressureLoss: z.number().optional(), // Added
+  emw: z.number().optional(), // Added
+  tripMargin: z.number().optional(), // Added
+  
   mudWeight: z.number().min(0, "Mud Weight is required"),
   viscosity: z.number().min(0, "Viscosity is required"),
   pv: z.number().min(0).optional(),
@@ -156,6 +182,23 @@ export const ReportSchema = z.object({
   includeSignatures: z.boolean().default(true),
   includeCalibrationData: z.boolean().default(true),
   exportReadOnly: z.boolean().default(false),
+  
+  // 9. Calculation Inputs (New)
+  stringData: z.array(StringDataEntrySchema).default([]),
+  wellProfile: z.array(WellProfileEntrySchema).default([]),
+  rheology600: z.number().min(0).optional(),
+  rheology300: z.number().min(0).optional(),
+  
+  // Calculated Volume/Time Data (New)
+  totalHoleVolume: z.number().optional(),
+  annulusVolume: z.number().optional(),
+  capacityVolume: z.number().optional(),
+  steelVolume: z.number().optional(),
+  displaceVolume: z.number().optional(),
+  lagTimeBbl: z.number().optional(),
+  lagTimeMin: z.number().optional(),
+  completeCirculationStrokes: z.number().optional(),
+  
 }).refine(data => (data.depthTo as number) >= (data.depthFrom as number), {
   message: "To depth must be greater than or equal to From depth",
   path: ["depthTo"],
@@ -165,6 +208,8 @@ export type ReportData = z.infer<typeof ReportSchema>;
 export type LithologyEntry = z.infer<typeof LithologyEntrySchema>;
 export type GasEntry = z.infer<typeof GasEntrySchema>;
 export type OperationEntry = z.infer<typeof OperationEntrySchema>;
+export type StringDataEntry = z.infer<typeof StringDataEntrySchema>;
+export type WellProfileEntry = z.infer<typeof WellProfileEntrySchema>;
 
 // Helper for initial state with sample data
 export const initialReportData: ReportData = {
@@ -201,7 +246,9 @@ export const initialReportData: ReportData = {
     { id: 'op1', fromTime: '00:00:00', toTime: '09:00:00', remark: 'CONT RIH W/ 4-1/8 PDC BIT...', duration: '09:00:00' },
     { id: 'op2', fromTime: '09:00:00', toTime: '00:00:00', remark: 'RESUME DRLG FORMATION F/ 2586-2607...', duration: '15:00:00' },
   ],
-  presentBit: {},
+  presentBit: {
+    nozzle: '12-12-12', // Add nozzle for calculation inputs
+  },
   equipmentCalibration: {
     gasDetector: {},
     chromatograph: {},
@@ -215,4 +262,19 @@ export const initialReportData: ReportData = {
   includeSignatures: true,
   includeCalibrationData: true,
   exportReadOnly: false,
+  
+  // Initial Calculation Inputs (based on image structure)
+  stringData: [
+    { id: 's1', type: 'DC 4 3/4"', idIn: 3, odIn: 4.75, lbFt: 43.6, lengthM: 100 },
+    { id: 's2', type: 'HWDP 3 1/2"', idIn: 2.06, odIn: 3.5, lbFt: 25.3, lengthM: 50 },
+    { id: 's3', type: 'DP 2 7/8"', idIn: 2.15, odIn: 2.875, lbFt: 10.6, lengthM: 1056.26 },
+    { id: 's4', type: 'DP 3.5"', idIn: 2.764, odIn: 3.5, lbFt: 13.3, lengthM: 1000 },
+  ],
+  wellProfile: [
+    { id: 'w1', type: 'LINER 7"', idIn: 6.154, topM: 0, bottomM: 1656, lengthM: 1656 },
+    { id: 'w2', type: 'LINER 5"', idIn: 4.28, topM: 1656, bottomM: 2585, lengthM: 929 },
+    { id: 'w3', type: 'OPEN HOLE 5.875"', idIn: 5.875, topM: 2585, bottomM: 2607, lengthM: 22 },
+  ],
+  rheology600: 60,
+  rheology300: 30,
 };
