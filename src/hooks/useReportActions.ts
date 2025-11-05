@@ -3,7 +3,6 @@ import { ipcRenderer } from '@/ipc/ipcRenderer';
 import { toast } from 'sonner';
 import { ReportData, ReportSchema } from '@/types/report';
 import { generateNidcExcelBase64 } from '@/utils/excelExport';
-import { z } from 'zod';
 
 export const useReportActions = (onNewReport: () => void, triggerValidation?: () => Promise<boolean>) => {
   const { report, autoSave, newReport } = useReportStore();

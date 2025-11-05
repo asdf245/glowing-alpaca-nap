@@ -10,7 +10,7 @@ import { ReportData } from '@/types/report';
  * This hook should be called within the ReportForm component where RHF context is available.
  */
 export const useElectronMenu = (onNewReport: () => void) => {
-  const { getValues, trigger, handleSubmit } = useFormContext<ReportData>();
+  const { trigger, handleSubmit } = useFormContext<ReportData>();
   
   // Get report actions, passing the RHF trigger for validation
   const { 

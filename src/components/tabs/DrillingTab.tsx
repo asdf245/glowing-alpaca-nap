@@ -27,7 +27,8 @@ const DrillingTab: React.FC = () => {
       label={label}
       unit={unit}
       type="number"
-      value={watch(field)}
+      // Cast the watched value to number | undefined, as these fields are known to be calculated numbers
+      value={watch(field) as number | undefined} 
       onChange={() => {}} // Read-only
       isCalculated
       readOnly
