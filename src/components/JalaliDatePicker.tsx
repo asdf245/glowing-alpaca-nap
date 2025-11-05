@@ -18,24 +18,20 @@ interface JalaliDatePickerProps {
 }
 
 export function JalaliDatePicker({ label, value, onChange, required = false }: JalaliDatePickerProps) {
-  const [date, setDate] = React.useState<Date | undefined>(
-    value ? moment(value, 'YYYY.MM.DD').toDate() : undefined
-  );
-
-  React.useEffect(() => {
-    if (date) {
-      const jalaliDate = moment(date).format('YYYY.MM.DD');
-      if (jalaliDate !== value) {
-        onChange(jalaliDate);
-      }
-    } else if (value) {
-        // If value is set externally but date state is undefined, sync it
-        setDate(moment(value, 'YYYY.MM.DD').toDate());
-    }
-  }, [date, value, onChange]);
+  // Convert the external Jalali date string (value) to a Gregorian Date object for the Calendar UI
+  const selectedDate = React.useMemo(() => {
+    return value ? moment(value, 'YYYY.MM.DD').toDate() : undefined;
+  }, [value]);
 
   const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
+    if (newDate) {
+      // Convert the selected Gregorian Date back to Jalali string format (YYYY.MM.DD)
+      const jalaliDate = moment(newDate).format('YYYY.MM.DD');
+      onChange(jalaliDate);
+    } else {
+      // Handle clearing the date if needed (though usually dates are required)
+      onChange('');
+    }
   };
 
   return (
@@ -59,7 +55,7 @@ export function JalaliDatePicker({ label, value, onChange, required = false }: J
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={date}
+            selected={selectedDate}
             onSelect={handleSelect}
             initialFocus
             // Note: Full Jalali calendar UI requires specialized components, 
