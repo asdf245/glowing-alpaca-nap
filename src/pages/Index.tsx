@@ -41,22 +41,13 @@ const Index = () => {
   }, [watch, setReport]);
 
   // Effect 2: Sync Zustand state changes (e.g., on load/new report) to RHF
-  // We only want this to run when a new report is loaded or created (i.e., currentReportId changes)
-  // or when the initial report object reference changes significantly.
-  // Since Effect 1 already updates the report object reference constantly, we must rely on a stable identifier.
-  // We use currentReportId as a proxy for a major state change (load/new).
   useEffect(() => {
-    // Only reset RHF if the report ID changes (new report loaded/created)
-    // or if the initial load happens (currentReportId is null, but report object is new).
-    // We rely on the initial defaultValues for the first render.
     // When currentReportId changes, it means we loaded a new report, so we reset RHF to that data.
     if (currentReportId !== undefined) {
         reset(report);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentReportId, reset]); 
-  // Note: We intentionally omit 'report' from dependencies here to break the loop. 
-  // The 'report' object is passed to reset when currentReportId changes.
 
   // Handle form submission (e.g., for export validation)
   const onSubmit = (data: ReportData) => {
@@ -84,7 +75,7 @@ const Index = () => {
 
   return (
     <FormProvider {...methods}>
-      <Layout activeTab={activeTab}>
+      <Layout activeTab={activeTab} onTabChange={setActiveTab}>
         <form onSubmit={handleSubmit(onSubmit)} className="h-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             {/* TabsContent is used here to manage the content area */}

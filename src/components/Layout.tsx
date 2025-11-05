@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from './made-with-dyad';
@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
+  onTabChange: (tabId: string) => void; // Added onTabChange
 }
 
 const TABS = [
@@ -47,15 +48,10 @@ const SidebarNavigation = ({ activeTab, onSelectTab }: { activeTab: string, onSe
   </nav>
 );
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
   const { report, lastAutoSave, newReport, autoSave } = useReportStore();
   const isMobile = useIsMobile();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState(activeTab);
-
-  useEffect(() => {
-    setCurrentTab(activeTab);
-  }, [activeTab]);
 
   const handleExportExcel = async () => {
     if (!window.electron) {
@@ -96,7 +92,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
   
   const handleNewReport = () => {
     newReport();
-    setCurrentTab('general');
+    onTabChange('general'); // Ensure we switch to general tab on new report
   };
 
   const QuickSummary = () => (
@@ -142,9 +138,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
     </div>
   );
   
+  // Handler for desktop navigation
+  const handleDesktopTabSelect = (tabId: string) => {
+    onTabChange(tabId);
+  };
+
   // Handler for mobile navigation: selects tab and closes sheet
   const handleMobileTabSelect = (tabId: string) => {
-    setCurrentTab(tabId);
+    onTabChange(tabId);
     setIsSheetOpen(false);
   };
 
@@ -163,7 +164,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
               <div className="p-4 border-b">
                 <h2 className="font-bold text-xl text-[#003366]">Menu</h2>
               </div>
-              <SidebarNavigation activeTab={currentTab} onSelectTab={handleMobileTabSelect} />
+              <SidebarNavigation activeTab={activeTab} onSelectTab={handleMobileTabSelect} />
               <QuickSummary />
             </SheetContent>
           </Sheet>
@@ -186,7 +187,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
           <h1 className="font-bold text-xl text-[#003366]">NIDC Mudlog Reporter</h1>
         </div>
         <div className="flex-grow overflow-y-auto">
-          <SidebarNavigation activeTab={currentTab} onSelectTab={setCurrentTab} />
+          <SidebarNavigation activeTab={activeTab} onSelectTab={handleDesktopTabSelect} />
         </div>
         <QuickSummary />
       </div>
