@@ -141,6 +141,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
       </span>
     </div>
   );
+  
+  // Handler for mobile navigation: selects tab and closes sheet
+  const handleMobileTabSelect = (tabId: string) => {
+    setCurrentTab(tabId);
+    setIsSheetOpen(false);
+  };
 
   if (isMobile) {
     return (
@@ -157,7 +163,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab }) => {
               <div className="p-4 border-b">
                 <h2 className="font-bold text-xl text-[#003366]">Menu</h2>
               </div>
-              <SidebarNavigation activeTab={currentTab} onSelectTab={setCurrentTab} />
+              <SidebarNavigation activeTab={currentTab} onSelectTab={handleMobileTabSelect} />
               <QuickSummary />
             </SheetContent>
           </Sheet>
