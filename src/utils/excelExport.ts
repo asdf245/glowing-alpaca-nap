@@ -194,7 +194,6 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 13, "Circulation Strokes"); setCell(ws, currentRow, 14, data.completeCirculationStrokes as number, 'n');
 
   // --- Rows 30-31: Drilling Parameters (WOB, SPP, etc.) ---
-  // Shifted from R29 to R30
   currentRow = 30;
   setCell(ws, currentRow, 0, "WOB (Klbf)"); setCell(ws, currentRow, 1, data.wob as number, 'n');
   setCell(ws, currentRow, 2, "SPP (PSI)"); setCell(ws, currentRow, 3, data.spp as number, 'n');
@@ -203,14 +202,14 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
   setCell(ws, currentRow, 8, "Torque (klbf.ft)"); setCell(ws, currentRow, 9, data.torque as number, 'n');
   
   // --- Rows 32-33: Lithological Data (Table Header) ---
-  // Shifted from R31 to R32
   currentRow = 32;
   setCell(ws, currentRow, 0, "From (m)");
   setCell(ws, currentRow, 1, "To (m)");
   setCell(ws, currentRow, 2, "ROP (m/hr)"); mergeCells(ws, currentRow, 2, currentRow, 4);
   setCell(ws, currentRow, 5, "Lithological Description"); mergeCells(ws, currentRow, 5, currentRow, 10);
   currentRow++;
-  // Shifted from R32 to R33
+  
+  currentRow = 33;
   setCell(ws, currentRow, 2, "(min)");
   setCell(ws, currentRow, 3, "(max)");
   setCell(ws, currentRow, 4, "(avg)");
@@ -227,10 +226,46 @@ export function generateNidcExcel(data: ReportData): XLSX.WorkBook {
     currentRow++;
   });
   
-  // --- Rows 49-67: Operations Log (Table Header) ---
-  // We skip rows 39-47 (Gas Data/Directional Data) to align with R49 for Operations Log
+  // --- Gas Data (Table Header) ---
+  // Start Gas Data after Lithology, ensuring at least R39 if Lithology is empty
+  currentRow = Math.max(currentRow, 39);
+  const gasHeaderRow = currentRow;
   
-  currentRow = 49;
+  setCell(ws, gasHeaderRow, 0, "From (m)");
+  setCell(ws, gasHeaderRow, 1, "To (m)");
+  setCell(ws, gasHeaderRow, 2, "TYPE");
+  setCell(ws, gasHeaderRow, 3, "TOT. GAS (%)");
+  setCell(ws, gasHeaderRow, 4, "C1 (ppm)");
+  setCell(ws, gasHeaderRow, 5, "C2 (ppm)");
+  setCell(ws, gasHeaderRow, 6, "C3 (ppm)");
+  setCell(ws, gasHeaderRow, 7, "iC4 (ppm)");
+  setCell(ws, gasHeaderRow, 8, "nC4 (ppm)");
+  setCell(ws, gasHeaderRow, 9, "iC5 (ppm)");
+  setCell(ws, gasHeaderRow, 10, "nC5 (ppm)");
+  setCell(ws, gasHeaderRow, 11, "Remarks"); mergeCells(ws, gasHeaderRow, 11, gasHeaderRow, 15);
+  currentRow++;
+  
+  // Gas Data Rows
+  (data.gasEntries as any[]).forEach(entry => {
+    setCell(ws, currentRow, 0, entry.from, 'n');
+    setCell(ws, currentRow, 1, entry.to, 'n');
+    setCell(ws, currentRow, 2, entry.type);
+    setCell(ws, currentRow, 3, entry.totGas, 'n');
+    setCell(ws, currentRow, 4, entry.c1, 'n');
+    setCell(ws, currentRow, 5, entry.c2, 'n');
+    setCell(ws, currentRow, 6, entry.c3, 'n');
+    setCell(ws, currentRow, 7, entry.iC4, 'n');
+    setCell(ws, currentRow, 8, entry.nC4, 'n');
+    setCell(ws, currentRow, 9, entry.iC5, 'n');
+    setCell(ws, currentRow, 10, entry.nC5, 'n');
+    setCell(ws, currentRow, 11, entry.remarks); mergeCells(ws, currentRow, 11, currentRow, 15);
+    currentRow++;
+  });
+  
+  // --- Operations Log (Table Header) ---
+  // Start Operations Log after Gas Data, ensuring at least R49 if Gas Data is short
+  currentRow = Math.max(currentRow, 49);
+  
   setCell(ws, currentRow, 0, "From");
   setCell(ws, currentRow, 1, "To");
   setCell(ws, currentRow, 2, "Duration");
