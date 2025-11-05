@@ -33,6 +33,9 @@ const electronApi = {
   send: (channel: string, ...args: any[]) => {
     console.log(`[IPC Send] Channel: ${channel}, Args:`, args);
   },
+  removeListener: (channel: string, _listener: (...args: any[]) => void) => {
+    console.log(`[IPC Listener] Removed listener for channel: ${channel}`);
+  },
 };
 
 // Expose the API globally if not running in Electron (for development testing)

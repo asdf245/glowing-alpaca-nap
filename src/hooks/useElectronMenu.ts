@@ -65,10 +65,12 @@ export const useElectronMenu = (onNewReport: () => void) => {
 
     // Cleanup listeners
     return () => {
-      // Note: In a real Electron app, listeners should be removed carefully.
-      // Since we are simulating, we rely on the component unmount.
-      // For simplicity in this environment, we rely on the component lifecycle.
-      // In a production Electron app, you would use ipcRenderer.removeListener.
+      ipcRenderer.removeListener('menu-new-report', handleNew);
+      ipcRenderer.removeListener('menu-open-report', handleOpen);
+      ipcRenderer.removeListener('menu-save-draft', handleSave);
+      ipcRenderer.removeListener('menu-export-excel', handleExportExcelMenu);
+      ipcRenderer.removeListener('menu-export-pdf', handleExportPDFMenu);
+      ipcRenderer.removeListener('menu-toggle-dark-mode', handleToggleDarkMode);
     };
   }, [handleNew, handleOpen, handleSave, handleExportExcelMenu, handleExportPDFMenu, handleToggleDarkMode]);
 };
