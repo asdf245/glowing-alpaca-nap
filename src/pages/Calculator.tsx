@@ -16,31 +16,33 @@ import { InputSummary } from '@/components/calculator/InputSummary';
 import { FormField } from '@/components/FormField';
 import { toast } from 'sonner';
 import { useReportStore } from '@/store/useReportStore';
+import { z } from 'zod'; // Ensure z is imported if we use z.object
 
-// Define a minimal schema for the calculator inputs
-const CalculatorSchema = ReportSchema.pick({
+// Define a minimal schema for the calculator inputs by explicitly defining the fields
+// This avoids the ReportSchema.pick() error.
+const CalculatorSchema = z.object({
     // General Inputs
-    mDepth: true,
-    tvd: true,
-    holeSize: true,
+    mDepth: ReportSchema.shape.mDepth,
+    tvd: ReportSchema.shape.tvd,
+    holeSize: ReportSchema.shape.holeSize,
     
     // Drilling/Mud Inputs
-    flowRate: true,
-    mudWeight: true,
-    spp: true,
-    rheology600: true,
-    rheology300: true,
+    flowRate: ReportSchema.shape.flowRate,
+    mudWeight: ReportSchema.shape.mudWeight,
+    spp: ReportSchema.shape.spp,
+    rheology600: ReportSchema.shape.rheology600,
+    rheology300: ReportSchema.shape.rheology300,
     
     // Pump Inputs
-    linerSizeIn: true,
-    strokeLengthIn: true,
+    linerSizeIn: ReportSchema.shape.linerSizeIn,
+    strokeLengthIn: ReportSchema.shape.strokeLengthIn,
     
     // Table Inputs
-    stringData: true,
-    wellProfile: true,
+    stringData: ReportSchema.shape.stringData,
+    wellProfile: ReportSchema.shape.wellProfile,
     
     // Bit Data (for nozzle)
-    presentBit: true,
+    presentBit: ReportSchema.shape.presentBit,
 });
 
 type CalculatorInputs = ReportData; // We use the full ReportData type for convenience, but only validate/use the fields above
