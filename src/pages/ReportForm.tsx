@@ -14,7 +14,7 @@ import { useElectronMenu } from '@/hooks/useElectronMenu';
 import GeneralTab from '@/components/tabs/GeneralTab';
 import BitDataTab from '@/components/tabs/BitDataTab';
 import DrillingTab from '@/components/tabs/DrillingTab';
-import PetroleumCalculations from '@/components/tabs/PetroleumCalculations';
+// import PetroleumCalculations from '@/components/tabs/PetroleumCalculations'; // Removed
 import LithologyTab from '@/components/tabs/LithologyTab';
 import GasDataTab from '@/components/tabs/GasDataTab';
 import OperationsTab from '@/components/tabs/OperationsTab';
@@ -22,7 +22,7 @@ import EquipmentTab from '@/components/tabs/EquipmentTab';
 import ExportTab from '@/components/tabs/ExportTab';
 
 const VALID_TABS = [
-  'general', 'bit', 'drilling', 'calculations', 'lithology', 'gas', 'operations', 'equipment', 'export'
+  'general', 'bit', 'drilling', 'lithology', 'gas', 'operations', 'equipment', 'export'
 ];
 
 const ReportForm = () => {
@@ -87,7 +87,7 @@ const ReportForm = () => {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentReportId, reset, id, navigate]); // Removed 'report' from dependencies
+  }, [currentReportId, reset, id, navigate]); 
 
   // RHF Success Callback (only runs if validation passes)
   const onSubmit = (data: ReportData, exportType: 'excel' | 'pdf') => {
@@ -139,9 +139,7 @@ const ReportForm = () => {
               <TabsContent value="drilling" className="mt-0">
                 <DrillingTab />
               </TabsContent>
-              <TabsContent value="calculations" className="mt-0">
-                <PetroleumCalculations />
-              </TabsContent>
+              {/* Calculations tab removed */}
               <TabsContent value="lithology" className="mt-0">
                 <LithologyTab />
               </TabsContent>

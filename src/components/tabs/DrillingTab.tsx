@@ -11,25 +11,18 @@ const DrillingTab: React.FC = () => {
   const depthTo = watch('depthTo') || 0;
   const hours = watch('hours') || 0;
   
-  const rheology600 = watch('rheology600');
-  const rheology300 = watch('rheology300');
-  
-  // PV/YP are calculated if R600/R300 are provided
-  const isRheologyCalculated = (rheology600 || 0) > 0 && (rheology300 || 0) > 0;
-
   // Auto-Calculations (Meterage and ROP remain here)
   const meterage = (depthTo as number) > (depthFrom as number) ? (depthTo as number) - (depthFrom as number) : 0;
   const avgRop = meterage > 0 && (hours as number) > 0 ? (meterage / (hours as number)).toFixed(2) : 0;
 
   const getError = (field: keyof ReportData) => errors[field]?.message as string | undefined;
 
-  const renderCalculatedField = (label: string, unit: string, field: keyof ReportData) => (
+  const renderCalculatedField = (label: string, unit: string, value: string | number) => (
     <FormField
       label={label}
       unit={unit}
-      type="number"
-      // Cast the watched value to number | undefined, as these fields are known to be calculated numbers
-      value={watch(field) as number | undefined} 
+      type="text"
+      value={value} 
       onChange={() => {}} // Read-only
       isCalculated
       readOnly
@@ -61,15 +54,7 @@ const DrillingTab: React.FC = () => {
           error={getError('depthTo')}
           required
         />
-        <FormField
-          label="Meterage"
-          unit="m"
-          type="number"
-          value={meterage}
-          onChange={() => {}} // Read-only
-          isCalculated
-          readOnly
-        />
+        {renderCalculatedField("Meterage", "m", meterage)}
         <FormField
           label="Hours"
           unit="hr"
@@ -79,15 +64,7 @@ const DrillingTab: React.FC = () => {
           error={getError('hours')}
           required
         />
-        <FormField
-          label="AVG. ROP"
-          unit="m/hr."
-          type="text"
-          value={avgRop}
-          onChange={() => {}} // Read-only
-          isCalculated
-          readOnly
-        />
+        {renderCalculatedField("AVG. ROP", "m/hr.", avgRop)}
       </div>
 
       <Separator />
@@ -134,30 +111,8 @@ const DrillingTab: React.FC = () => {
 
       <Separator />
 
-      {/* Hydraulic Data (Calculated) */}
-      <h3 className="text-xl font-semibold text-[#003366]">Calculated Hydraulic & Pressure Data</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {renderCalculatedField("Annular Velocity (AV)", "m/min", "annVelocity")}
-        {renderCalculatedField("Jet Velocity (JV)", "m/s", "jetVelocity")}
-        {renderCalculatedField("Bit HHP", "HP", "bitHhp")}
-        {renderCalculatedField("HSI", "HHP/inch²", "hsi")}
-        {renderCalculatedField("ECD", "pcf", "ecd")}
-        
-        {renderCalculatedField("Hydrostatic Pressure (HP)", "PSI", "hydrostaticPressure")}
-        {renderCalculatedField("Annular Pressure Loss (APL)", "PSI", "annularPressureLoss")}
-        {renderCalculatedField("EMW", "pcf", "emw")}
-        {renderCalculatedField("MAMW", "pcf", "mamw")}
-        {renderCalculatedField("Trip Margin (TM)", "pcf", "tripMargin")}
-        
-        {/* Power Law Indices */}
-        {renderCalculatedField("Flow Index (n)", "", "n")}
-        {renderCalculatedField("Consistency Index (k)", "", "k")}
-      </div>
-
-      <Separator />
-
-      {/* Mud Data */}
-      <h3 className="text-xl font-semibold text-[#003366]">Mud Data & Rheology Inputs</h3>
+      {/* Mud Data (Rheology inputs removed) */}
+      <h3 className="text-xl font-semibold text-[#003366]">Mud Data</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <FormField
           label="Mud Weight"
@@ -178,41 +133,7 @@ const DrillingTab: React.FC = () => {
           required
         />
         
-        {/* Rheology Inputs */}
-        <FormField
-          label="Rheology @ 600 RPM"
-          unit="°"
-          type="number"
-          value={rheology600}
-          onChange={(val) => setValue('rheology600', val as number)}
-        />
-        <FormField
-          label="Rheology @ 300 RPM"
-          unit="°"
-          type="number"
-          value={rheology300}
-          onChange={(val) => setValue('rheology300', val as number)}
-        />
-        
-        {/* Calculated PV/YP */}
-        <FormField
-          label="P.V."
-          unit="cp"
-          type="number"
-          value={watch('pv')}
-          onChange={(val) => setValue('pv', val as number)}
-          readOnly={isRheologyCalculated}
-          isCalculated={isRheologyCalculated}
-        />
-        <FormField
-          label="YP"
-          unit="lbf/100ft²"
-          type="number"
-          value={watch('yp')}
-          onChange={(val) => setValue('yp', val as number)}
-          readOnly={isRheologyCalculated}
-          isCalculated={isRheologyCalculated}
-        />
+        {/* PV/YP fields removed as they are calculated */}
         
         <FormField
           label="Gels"

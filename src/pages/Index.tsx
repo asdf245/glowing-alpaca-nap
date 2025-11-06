@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { File, FolderOpen } from 'lucide-react';
+import { File, FolderOpen, Calculator } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { useReportActions } from '@/hooks/useReportActions';
@@ -20,6 +20,10 @@ const Index: React.FC = () => {
     newReport(); // Reset store state
     navigate('/report');
   };
+  
+  const handleRunCalculations = () => {
+    navigate('/calculator');
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-background p-8">
@@ -31,13 +35,13 @@ const Index: React.FC = () => {
             NIDC Mudlog Reporter
           </h1>
           <p className="text-lg text-muted-foreground">
-            Daily Report Generation for Drilling and Workover Operations
+            Daily Report Generation and Engineering Calculations
           </p>
         </div>
 
         <Card className="shadow-xl border-2 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-2xl text-primary">Quick Actions</CardTitle>
+            <CardTitle className="text-2xl text-primary">Select Module</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap justify-center gap-6">
             <Button 
@@ -45,7 +49,15 @@ const Index: React.FC = () => {
               size="lg" 
               className="h-14 px-8 text-lg bg-green-600 hover:bg-green-700"
             >
-              <File className="h-6 w-6 mr-3" /> Start New Report
+              <File className="h-6 w-6 mr-3" /> Start Reporting
+            </Button>
+            <Button 
+              onClick={handleRunCalculations} 
+              size="lg" 
+              variant="secondary"
+              className="h-14 px-8 text-lg"
+            >
+              <Calculator className="h-6 w-6 mr-3" /> Run Calculations
             </Button>
             <Button 
               onClick={handleOpenReport} 
@@ -53,7 +65,7 @@ const Index: React.FC = () => {
               variant="outline"
               className="h-14 px-8 text-lg"
             >
-              <FolderOpen className="h-6 w-6 mr-3" /> Open Existing File
+              <FolderOpen className="h-6 w-6 mr-3" /> Open Existing Draft
             </Button>
           </CardContent>
         </Card>
