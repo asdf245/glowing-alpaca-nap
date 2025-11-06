@@ -44,12 +44,14 @@ const Calculator: React.FC = () => {
   const navigate = useNavigate();
   const { setReport } = useReportStore();
 
-  // Use local form state, initialized with relevant data from initialReportData
+  // Get the current report data from the store
+  const currentReport = useReportStore.getState().report;
+
+  // Use local form state, initialized with relevant data from the current report
   const methods = useForm<CalculatorInputs>({
     defaultValues: {
-        ...initialReportData,
-        // Ensure only relevant fields are initialized if needed, 
-        // but using initialReportData as a base is fine since we only watch specific fields.
+        // Use currentReport as the base for default values
+        ...currentReport, 
     },
     mode: 'onChange',
   });
@@ -107,7 +109,7 @@ const Calculator: React.FC = () => {
         tvd: currentInputs.tvd,
         holeSize: currentInputs.holeSize,
         presentBit: {
-            ...initialReportData.presentBit, // Keep existing bit data
+            ...currentReport.presentBit, // Keep existing bit data
             nozzle: currentInputs.presentBit?.nozzle, // Update nozzle
         }
     };
