@@ -18,31 +18,33 @@ import { toast } from 'sonner';
 import { useReportStore } from '@/store/useReportStore';
 import { z } from 'zod'; // Ensure z is imported if we use z.object
 
+// Access the underlying shape of the ReportSchema
+const ReportShape = ReportSchema._def.schema.shape;
+
 // Define a minimal schema for the calculator inputs by explicitly defining the fields
-// This avoids the ReportSchema.pick() error.
 const CalculatorSchema = z.object({
     // General Inputs
-    mDepth: ReportSchema.shape.mDepth,
-    tvd: ReportSchema.shape.tvd,
-    holeSize: ReportSchema.shape.holeSize,
+    mDepth: ReportShape.mDepth,
+    tvd: ReportShape.tvd,
+    holeSize: ReportShape.holeSize,
     
     // Drilling/Mud Inputs
-    flowRate: ReportSchema.shape.flowRate,
-    mudWeight: ReportSchema.shape.mudWeight,
-    spp: ReportSchema.shape.spp,
-    rheology600: ReportSchema.shape.rheology600,
-    rheology300: ReportSchema.shape.rheology300,
+    flowRate: ReportShape.flowRate,
+    mudWeight: ReportShape.mudWeight,
+    spp: ReportShape.spp,
+    rheology600: ReportShape.rheology600,
+    rheology300: ReportShape.rheology300,
     
     // Pump Inputs
-    linerSizeIn: ReportSchema.shape.linerSizeIn,
-    strokeLengthIn: ReportSchema.shape.strokeLengthIn,
+    linerSizeIn: ReportShape.linerSizeIn,
+    strokeLengthIn: ReportShape.strokeLengthIn,
     
     // Table Inputs
-    stringData: ReportSchema.shape.stringData,
-    wellProfile: ReportSchema.shape.wellProfile,
+    stringData: ReportShape.stringData,
+    wellProfile: ReportShape.wellProfile,
     
     // Bit Data (for nozzle)
-    presentBit: ReportSchema.shape.presentBit,
+    presentBit: ReportShape.presentBit,
 });
 
 type CalculatorInputs = ReportData; // We use the full ReportData type for convenience, but only validate/use the fields above

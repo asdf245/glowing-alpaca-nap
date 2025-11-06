@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock, Calculator } from 'lucide-react';
+import { FileText, FolderOpen, Save, FileSpreadsheet, File, Menu, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from './made-with-dyad';
 import { useReportStore } from '@/store/useReportStore';
