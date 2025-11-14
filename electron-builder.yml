@@ -11,6 +11,7 @@ win:
   target:
     - nsis
     - portable
+    - msi
   icon: build/icon.ico
   requestedExecutionLevel: asInvoker
 nsis:
