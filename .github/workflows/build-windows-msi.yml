@@ -25,8 +25,7 @@ jobs:
         run: npm run build
 
       - name: Build MSI installer
-        run: npx electron-builder --win --msi --publish=never
-
+        run: npx electron-builder --win --publish=never
       - name: Upload to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
